@@ -12,6 +12,9 @@ namespace AutoMerge
 
 		AlreadyMerged,
 
-		NoAccess
+		NoAccess,
+
+		// Flusso Task: il target ha ancora conflitti aperti dall'ultimo stop della catena.
+		HasUnresolvedConflicts
 	}
 }

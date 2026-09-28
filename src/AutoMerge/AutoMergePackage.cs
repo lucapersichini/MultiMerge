@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using AutoMerge.Commands;
 using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace AutoMerge
 {
@@ -23,8 +24,13 @@ namespace AutoMerge
     // in the Help/About dialog of Visual Studio.
     [InstalledProductRegistration("#110", "#112", "1.0", IconResourceID = 400)]
     [Guid(GuidList.guidAutoMergePkgString)]
-    [ProvideMenuResource("Menus.ctmenu", 1)]
+    // Versione 2: la command table ha un comando nuovo ("Merge from Task..."), cosi' VS ricarica i menu.
+    [ProvideMenuResource("Menus.ctmenu", 2)]
     [ProvideBindingPath]
+    // Scheda "Merge from Task": tool window a istanza singola, aperta tra i documenti.
+    [ProvideToolWindow(typeof(TaskMergeToolWindow), Style = VsDockStyle.Tabbed, Window = "DocumentWell", MultiInstances = false)]
+    // Scheda "Merge Policies" (regole di merge di team e personali): stessa forma, aperta da Merge from Task.
+    [ProvideToolWindow(typeof(MergePolicyToolWindow), Style = VsDockStyle.Tabbed, Window = "DocumentWell", MultiInstances = false)]
     public sealed class AutoMergePackage : AsyncPackage
     {
         protected override async System.Threading.Tasks.Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
@@ -32,6 +38,32 @@ namespace AutoMerge
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             await ShowAutoMergeWindow.InitializeAsync(this);
+            await ShowTaskMergeWindow.InitializeAsync(this);
+        }
+
+        // Creazione asincrona delle tool window: il package stesso e' lo "state" passato al
+        // costruttore di TaskMergeToolWindow e di MergePolicyToolWindow (serve come service provider
+        // dei view model).
+        public override IVsAsyncToolWindowFactory GetAsyncToolWindowFactory(Guid toolWindowType)
+        {
+            return toolWindowType.Equals(GuidList.TaskMergeToolWindowGuid)
+                || toolWindowType.Equals(GuidList.MergePolicyToolWindowGuid)
+                ? this
+                : null;
+        }
+
+        protected override string GetToolWindowTitle(Type toolWindowType, int id)
+        {
+            if (toolWindowType == typeof(TaskMergeToolWindow))
+                return TaskMergeToolWindow.WindowCaption;
+            if (toolWindowType == typeof(MergePolicyToolWindow))
+                return MergePolicyToolWindow.WindowCaption;
+            return base.GetToolWindowTitle(toolWindowType, id);
+        }
+
+        protected override System.Threading.Tasks.Task<object> InitializeToolWindowAsync(Type toolWindowType, int id, CancellationToken cancellationToken)
+        {
+            return System.Threading.Tasks.Task.FromResult<object>(this);
         }
     }
 }

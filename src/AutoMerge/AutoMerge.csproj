@@ -108,6 +108,9 @@
     <Compile Include="Branches\BranchFactory.cs" />
     <Compile Include="Branches\BranchValidationResult.cs" />
     <Compile Include="Branches\BranchValidator.cs" />
+    <Compile Include="Branches\ChangesetBatch.cs" />
+    <Compile Include="Branches\ChangesetBatchCalculator.cs" />
+    <Compile Include="Branches\TaskTargetPathMapper.cs" />
     <Compile Include="Branches\CheckInResult.cs" />
     <Compile Include="Branches\EscapeMnemonicConverter.cs" />
     <Compile Include="Branches\FileMergeInfo.cs" />
@@ -121,8 +124,10 @@
     <Compile Include="Branches\MergeResult.cs" />
     <Compile Include="Branches\MergeResultModel.cs" />
     <Compile Include="Branches\Notification.cs" />
+    <Compile Include="Branches\TaskChangesetGroup.cs" />
     <Compile Include="Branches\TrackMergeInfo.cs" />
     <Compile Include="Commands\ShowAutoMergeWindow.cs" />
+    <Compile Include="Commands\ShowTaskMergeWindow.cs" />
     <Compile Include="CommentFormater.cs" />
     <Compile Include="Configuration\CommentFormat.cs" />
     <Compile Include="Configuration\ISettingProvider.cs" />
@@ -136,6 +141,7 @@
     <Compile Include="Events\EventAggregatorFactory.cs" />
     <Compile Include="Events\MergeCompleteEvent.cs" />
     <Compile Include="Events\SelectChangesetEvent.cs" />
+    <Compile Include="Events\SelectTaskChangesetGroupEvent.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="Helpers\BranchHelper.cs" />
     <Compile Include="Helpers\EnumerableExtensions.cs" />
@@ -181,10 +187,48 @@
     <Compile Include="AutoMergePackage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ChangesetService.cs" />
+    <Compile Include="Services\WorkItemChangesetService.cs" />
     <Compile Include="Services\ILogger.cs" />
     <Compile Include="Services\LoggerBase.cs" />
+    <Compile Include="Services\TaskChangesetGroupingService.cs" />
     <Compile Include="Services\VsLogger.cs" />
     <Compile Include="VersionControl\VersionControlProvider.cs" />
+    <Compile Include="WorkItems\WorkItemMergeSection.cs" />
+    <Compile Include="WorkItems\WorkItemMergeView.xaml.cs">
+      <DependentUpon>WorkItemMergeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WorkItems\WorkItemMergeViewModel.cs" />
+    <Compile Include="WorkItems\TaskMergeSession.cs" />
+    <Compile Include="TaskMerge\TaskMergeToolWindow.cs" />
+    <Compile Include="TaskMerge\TaskMergeView.xaml.cs">
+      <DependentUpon>TaskMergeView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TaskMerge\TaskMergeViewModel.cs" />
+    <Compile Include="TaskMerge\TaskMergeStepViewModel.cs" />
+    <Compile Include="TaskMerge\TaskMergeChangesetViewModel.cs" />
+    <Compile Include="TaskMerge\TaskMergeStepBarPanel.cs" />
+    <Compile Include="TaskMerge\TaskMergePlanner.cs" />
+    <Compile Include="TaskMerge\TaskMergeSafety.cs" />
+    <Compile Include="TaskMerge\TaskMergePlanDataSource.cs" />
+    <Compile Include="TaskMerge\TaskMergeAuditDataSource.cs" />
+    <Compile Include="TaskMerge\TaskMergeCheckIn.cs" />
+    <Compile Include="TaskMerge\TaskMergeConflictViewModel.cs" />
+    <Compile Include="TaskMerge\ThreeWayMerge.cs" />
+    <Compile Include="TaskMerge\OpenConflictMap.cs" />
+    <Compile Include="TaskMerge\ConflictHeaderPanel.cs" />
+    <Compile Include="TaskMerge\ConflictResolverViewModel.cs" />
+    <Compile Include="TaskMerge\EmbeddedTextEditors.cs" />
+    <Compile Include="TaskMerge\ConflictResolverView.xaml.cs">
+      <DependentUpon>ConflictResolverView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TaskMerge\TaskMergePolicyExecution.cs" />
+    <Compile Include="TaskMerge\MergePolicy.cs" />
+    <Compile Include="TaskMerge\MergePolicyStore.cs" />
+    <Compile Include="TaskMerge\MergePolicyToolWindow.cs" />
+    <Compile Include="TaskMerge\MergePolicyViewModel.cs" />
+    <Compile Include="TaskMerge\MergePolicyView.xaml.cs">
+      <DependentUpon>MergePolicyView.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources.resx">
@@ -239,6 +283,22 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RecentChangesets\RecentChangesetsView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WorkItems\WorkItemMergeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TaskMerge\TaskMergeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TaskMerge\ConflictResolverView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TaskMerge\MergePolicyView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -46,6 +46,10 @@
       <Group guid="guidShowAutoMergeCmdSet" id="AutoMergeGroup" priority="0x100">
         <Parent guid="guidShowAutoMergeCmdSet" id="AutoMergeToolbar"/>
       </Group>
+      <!-- Gruppo proprio nel menu Tools per "Merge from Task..." -->
+      <Group guid="guidShowAutoMergeCmdSet" id="TaskMergeToolsGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
     </Groups>
 
     <Buttons>
@@ -60,9 +64,26 @@
           <ButtonText>Show Auto Merge</ButtonText>
         </Strings>
       </Button>
+      <!-- Apre la scheda "Merge from Task" (tool window nel document well). Sta nella toolbar
+           (gruppo AutoMergeGroup) e, tramite CommandPlacement, anche nel menu Tools. -->
+      <Button guid="guidShowAutoMergeCmdSet" id="ShowTaskMergeCommandId" priority="0x0101" type="Button">
+        <Parent guid="guidShowAutoMergeCmdSet" id="AutoMergeGroup" />
+        <Icon guid="ImageCatalogGuid" id="Merge" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>AutoMerge.ShowTaskMerge</LocCanonicalName>
+          <ButtonText>Merge from Task...</ButtonText>
+        </Strings>
+      </Button>
     </Buttons>
 
   </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidShowAutoMergeCmdSet" id="ShowTaskMergeCommandId" priority="0x0100">
+      <Parent guid="guidShowAutoMergeCmdSet" id="TaskMergeToolsGroup" />
+    </CommandPlacement>
+  </CommandPlacements>
 
 
 
@@ -77,6 +98,8 @@
       <IDSymbol name="AutoMergeGroup" value="0x1050" />
       <IDSymbol name="AutoMergeToolbar" value="0x1030" />
       <IDSymbol name="ShowAutoMergeCommandId" value="0x0100" />
+      <IDSymbol name="ShowTaskMergeCommandId" value="0x0101" />
+      <IDSymbol name="TaskMergeToolsGroup" value="0x1060" />
     </GuidSymbol>
     <GuidSymbol name="AutoMergeIcons" value="{2407B4E8-3623-408A-B4F3-CABFFE725D70}">
       <IDSymbol name="Show" value="1" />

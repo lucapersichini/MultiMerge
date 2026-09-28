@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using AutoMerge.Prism.Events;
 using Microsoft.TeamFoundation.VersionControl.Client;
 
@@ -9,6 +9,7 @@ namespace AutoMerge
 		private readonly string _sourceBranch;
 		private readonly string _sourceFolder;
 		private readonly ChangesetVersionSpec _changesetVersion;
+		private readonly List<ChangesetBatch> _batches;
 		private readonly BranchValidator _branchValidator;
 		private readonly IEventAggregator _eventAggregator;
 
@@ -17,10 +18,28 @@ namespace AutoMerge
 			ChangesetVersionSpec changesetVersion,
 			BranchValidator branchValidator,
 			IEventAggregator eventAggregator)
+			: this(sourceBranch, sourceFolder, branchValidator, eventAggregator)
+		{
+			_changesetVersion = changesetVersion;
+		}
+
+		public BranchFactory(string sourceBranch,
+			string sourceFolder,
+			List<ChangesetBatch> batches,
+			BranchValidator branchValidator,
+			IEventAggregator eventAggregator)
+			: this(sourceBranch, sourceFolder, branchValidator, eventAggregator)
+		{
+			_batches = batches;
+		}
+
+		private BranchFactory(string sourceBranch,
+			string sourceFolder,
+			BranchValidator branchValidator,
+			IEventAggregator eventAggregator)
 		{
 			_sourceBranch = sourceBranch;
 			_sourceFolder = sourceFolder;
-			_changesetVersion = changesetVersion;
 			_branchValidator = branchValidator;
 			_eventAggregator = eventAggregator;
 		}
@@ -44,6 +63,7 @@ namespace AutoMerge
 				SourcePath = _sourceFolder,
 				TargetPath = targetPath,
 				ChangesetVersionSpec = _changesetVersion,
+				Batches = _batches,
 				ValidationResult = BranchValidationResult.Success,
 			};
 

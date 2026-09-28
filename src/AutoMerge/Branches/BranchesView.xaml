@@ -66,6 +66,18 @@
               </Style>
             </TextBlock.Style>
           </TextBlock>
+          <Border Margin="6,0,0,0"
+                  Padding="4,0,4,0"
+                  Background="{DynamicResource WarningIconBrush}"
+                  CornerRadius="2"
+                  Visibility="{Binding BatchProgressText,
+                                       Converter={StaticResource NonEmptyStringToVisibleConverter}}"
+                  ToolTip="Task batches not yet merged for this target">
+            <TextBlock FontSize="10"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       Text="{Binding BatchProgressText}" />
+          </Border>
           <StackPanel Margin="6,0,0,0"
                       Orientation="Horizontal"
                       Visibility="{Binding ValidationMessage,

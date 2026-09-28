@@ -32,6 +32,8 @@ namespace AutoMerge
             _eventAggregator = EventAggregatorFactory.Get();
             _eventAggregator.GetEvent<MergeCompleteEvent>()
                 .Subscribe(OnMergeComplete);
+            _eventAggregator.GetEvent<SelectTaskChangesetGroupEvent>()
+                .Subscribe(OnSelectedTaskChangesetGroup);
 
             ViewChangesetDetailsCommand = new DelegateCommand(ViewChangesetDetailsExecute, ViewChangesetDetailsCanExecute);
             ToggleAddByIdCommand = new DelegateCommand(ToggleAddByIdExecute, ToggleAddByIdCanExecute);
@@ -121,6 +123,20 @@ namespace AutoMerge
             await RefreshAsync();
         }
 
+        // Un task ("Merge from Task") ha preso il pannello Target branches, o lo ha azzerato
+        // ricaricando un task (evento con null): in entrambi i casi BranchesViewModel non usa piu' il
+        // changeset selezionato qui. Lo deseleziona senza ripubblicare, cosi' un click successivo su
+        // qualunque changeset (anche lo stesso di prima) e' un vero cambio di selezione e riporta il
+        // pannello al changeset singolo.
+        private void OnSelectedTaskChangesetGroup(TaskChangesetGroup group)
+        {
+            if (_selectedChangeset == null)
+                return;
+
+            _selectedChangeset = null;
+            RaisePropertyChanged("SelectedChangeset");
+        }
+
         protected override async Task InitializeAsync(object sender, SectionInitializeEventArgs e)
         {
             if (e.Context == null)
@@ -147,7 +163,10 @@ namespace AutoMerge
             Changesets = new ObservableCollection<ChangesetViewModel>(changesets);
             UpdateTitle();
 
-            if (Changesets.Count > 0)
+            // Con un task attivo niente selezione automatica: pubblicherebbe SelectChangesetEvent e
+            // strapperebbe il pannello Target branches al task (es. al ritorno su Auto Merge dopo
+            // aver risolto i conflitti, quando questa sezione viene ricreata e ricaricata).
+            if (Changesets.Count > 0 && TaskMergeSession.ActiveGroup == null)
             {
                 if (SelectedChangeset == null || SelectedChangeset.ChangesetId != Changesets[0].ChangesetId)
                     SelectedChangeset = Changesets[0];
@@ -272,6 +291,7 @@ namespace AutoMerge
         {
             base.Dispose();
             _eventAggregator.GetEvent<MergeCompleteEvent>().Unsubscribe(OnMergeComplete);
+            _eventAggregator.GetEvent<SelectTaskChangesetGroupEvent>().Unsubscribe(OnSelectedTaskChangesetGroup);
         }
 
         public override void SaveContext(object sender, SectionSaveContextEventArgs e)
@@ -294,7 +314,9 @@ namespace AutoMerge
             var context = (RecentChangesetsViewModelContext)e.Context;
             ChangesetIdsText = context.ChangesetIdsText;
             Changesets = context.Changesets;
-            SelectedChangeset = context.SelectedChangeset;
+            // Con un task attivo non ripubblicare la selezione: strapperebbe il pannello al task.
+            if (TaskMergeSession.ActiveGroup == null)
+                SelectedChangeset = context.SelectedChangeset;
             ShowAddByIdChangeset = context.ShowAddByIdChangeset;
             Title = context.Title;
         }
