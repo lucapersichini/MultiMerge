@@ -60,8 +60,8 @@ Choose which files to merge, discard or skip, and which lines to preserve. Prese
 1. Open **Team Explorer → MultiMerge → Merge From Task**.
 2. Select a work item and target branch, then open the **Merge from Task** tab.
 3. Choose the changesets to include and press **Update plan**. Review the updated plan and configure **Merge Policies** as needed.
-4. Start the merge and resolve conflicts.
-5. Build and test the target branch before confirming each check-in. Continue until all parts are complete.
+4. Start the merge and resolve conflicts. The warnings window can be resized or minimized while you inspect Visual Studio; the merge waits for confirmation.
+5. Build and test the target branch before confirming each check-in. Comments are prefilled with the task, changeset IDs and original comments of the changesets delivered in that part. Continue until all parts are complete.
 6. Review the manual follow-ups and update branch-specific packages through your normal process.
 
 ## Merge policies

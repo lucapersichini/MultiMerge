@@ -2466,7 +2466,7 @@ namespace MultiMerge
         // conferma esplicita (default No) PRIMA di qualsiasi modifica al workspace.
         private async Task StartCommandCoreAsync()
         {
-            if (!IsChainInProgress && !ConfirmStartWithWarnings())
+            if (!IsChainInProgress && !await ConfirmStartWithWarningsAsync())
             {
                 StatusMessage = "Start cancelled: nothing was changed. Review the warnings (or the changeset selection), then Start again.";
                 Log(StatusMessage);
@@ -2475,31 +2475,25 @@ namespace MultiMerge
             await StartOrContinueCoreAsync();
         }
 
-        private bool ConfirmStartWithWarnings()
+        private async Task<bool> ConfirmStartWithWarningsAsync()
         {
             var warnings = StartWarnings();
             if (warnings.Count == 0)
                 return true;
 
-            const int maxShown = 12;
-            var text = new StringBuilder();
-            text.AppendFormat(CultureInfo.InvariantCulture, "The plan of work item {0} has {1}:\n\n", _workItemId, TaskMergeText.Count(warnings.Count, "warning"));
-            foreach (var warning in warnings.Take(maxShown))
-                text.Append("- ").Append(warning).Append("\n\n");
-            if (warnings.Count > maxShown)
-                text.AppendFormat(CultureInfo.InvariantCulture, "... and {0} more (see the tab and the log).\n\n", warnings.Count - maxShown);
-            text.Append("Start the merge anyway?");
-
             Log(string.Format(CultureInfo.InvariantCulture, "Start: asking for confirmation ({0}).", TaskMergeText.Count(warnings.Count, "warning")));
-            var answer = Microsoft.VisualStudio.Shell.VsShellUtilities.ShowMessageBox(
-                _serviceProvider ?? Microsoft.VisualStudio.Shell.ServiceProvider.GlobalProvider,
-                text.ToString(),
-                "Merge from Task - warnings",
-                Microsoft.VisualStudio.Shell.Interop.OLEMSGICON.OLEMSGICON_WARNING,
-                Microsoft.VisualStudio.Shell.Interop.OLEMSGBUTTON.OLEMSGBUTTON_YESNO,
-                Microsoft.VisualStudio.Shell.Interop.OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_SECOND);
-            if (answer != IdYes)
+            StatusMessage = "Review the warnings window. The merge waits for confirmation; you can minimize the window to inspect Visual Studio.";
+            var window = new TaskMergeWarningsWindow(_workItemId, warnings);
+            // Modeless: VS stays usable while the command awaits an explicit decision.
+            // RunBusyAsync keeps this session's inputs and merge commands locked during the wait.
+            window.Show();
+            if (!await window.Confirmation)
                 return false;
+            if (_policyChangedWhileBusy)
+            {
+                Log("Start cancelled: merge policies changed while reviewing warnings. Review the updated plan and start again.");
+                return false;
+            }
 
             Log("Start confirmed despite the warnings.");
             return true;
@@ -3217,7 +3211,7 @@ namespace MultiMerge
             if (partial)
                 text += PartCount > 1 ? ", partial" : " - partial";
             text += " (changesets " + string.Join(", ", changesets) + ")";
-            return WithPolicyLine(text, StepsToDeliverForCheckIn(partNumber, partial));
+            return WithPolicyLine(AppendChangesetComments(text, changesets), StepsToDeliverForCheckIn(partNumber, partial));
         }
 
         // Commento per Pending Changes aperto a mano: della parte se la catena aspetta un check-in,
@@ -3241,8 +3235,14 @@ namespace MultiMerge
                     Steps.Where(s => s.MergedInSession).SelectMany(s => s.TaskChangesetIds).Distinct().OrderBy(id => id).ToList(),
                     true);
             }
-            return WithPolicyLine(string.Format(CultureInfo.InvariantCulture, "Merge from Task #{0} \"{1}\" (changesets {2})",
-                _workItemId, _workItemTitle, string.Join(", ", PlannedChangesetIds())), Steps.Select(s => s.Step));
+            return WithPolicyLine(AppendChangesetComments(string.Format(CultureInfo.InvariantCulture, "Merge from Task #{0} \"{1}\" (changesets {2})",
+                _workItemId, _workItemTitle, string.Join(", ", PlannedChangesetIds())), PlannedChangesetIds()), Steps.Select(s => s.Step));
+        }
+
+        private string AppendChangesetComments(string header, IEnumerable<int> changesets)
+        {
+            return TaskMergeCommentFormatter.AppendChangesetComments(header, changesets,
+                _planData == null ? Enumerable.Empty<TaskMergeChangesetInfo>() : _planData.Changesets);
         }
 
         private string WithPolicyLine(string comment, IEnumerable<TaskMergeStep> steps)

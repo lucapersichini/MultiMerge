@@ -1,5 +1,10 @@
 # MultiMerge release notes
 
+## 1.0.2 (2026-09-28)
+
+- Populate check-in comments with the original comments of the changesets delivered in each part, including partial check-ins and Pending Changes.
+- Replace the blocking Start warnings dialog with a resizable, minimizable window listing all warnings. Visual Studio remains usable while the merge waits for explicit confirmation.
+
 ## 1.0.1 (2026-09-28)
 
 - Select multiple task changeset rows with Ctrl/Shift and include or exclude them together.

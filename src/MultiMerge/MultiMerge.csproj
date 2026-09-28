@@ -207,6 +207,10 @@
     <Compile Include="TaskMerge\TaskMergeViewModel.cs" />
     <Compile Include="TaskMerge\TaskMergeStepViewModel.cs" />
     <Compile Include="TaskMerge\TaskMergeChangesetViewModel.cs" />
+    <Compile Include="TaskMerge\TaskMergeCommentFormatter.cs" />
+    <Compile Include="TaskMerge\TaskMergeWarningsWindow.xaml.cs">
+      <DependentUpon>TaskMergeWarningsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="TaskMerge\TaskMergeStepBarPanel.cs" />
     <Compile Include="TaskMerge\TaskMergePlanner.cs" />
     <Compile Include="TaskMerge\TaskMergeSafety.cs" />
@@ -288,6 +292,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="WorkItems\WorkItemMergeView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TaskMerge\TaskMergeWarningsWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
