@@ -1,5 +1,6 @@
 // Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
@@ -208,7 +209,9 @@ namespace MultiMerge
             StartCommand = DelegateCommand.FromAsyncHandler(() => RunBusyAsync(StartCommandCoreAsync), StartCanExecute);
             CheckInCommand = DelegateCommand.FromAsyncHandler(() => RunBusyAsync(CheckInCoreAsync), CheckInCanExecute);
             ReviewPendingChangesCommand = DelegateCommand.FromAsyncHandler(() => RunBusyAsync(ReviewPendingChangesCoreAsync), ReviewPendingChangesCanExecute);
-            SelectAllChangesetsCommand = DelegateCommand.FromAsyncHandler(() => RunBusyAsync(SelectAllChangesetsCoreAsync), SelectAllChangesetsCanExecute);
+            SelectAllChangesetsCommand = new DelegateCommand(SelectAllChangesets, SelectAllChangesetsCanExecute);
+            IncludeChangesetsCommand = new DelegateCommand<IList>(rows => SetChangesetsIncluded(rows, true), rows => CanSetChangesetsIncluded(rows, true));
+            ExcludeChangesetsCommand = new DelegateCommand<IList>(rows => SetChangesetsIncluded(rows, false), rows => CanSetChangesetsIncluded(rows, false));
             RecomputePlanCommand = DelegateCommand.FromAsyncHandler(() => RunBusyAsync(ReplanCoreAsync), () => CanChangeSelection && ShowRecomputePlan);
             RefreshConflictsCommand = DelegateCommand.FromAsyncHandler(() => RunBusyAsync(RefreshConflictsAndContinueCoreAsync), RefreshConflictsCanExecute);
             OpenInVsResolveConflictsCommand = new DelegateCommand(OpenInVsResolveConflicts, OpenInVsResolveConflictsCanExecute);
@@ -620,7 +623,7 @@ namespace MultiMerge
 
         public bool HasDependencyWarnings
         {
-            get { return _dependencyWarnings.Count > 0; }
+            get { return !HasStaleSelection && _dependencyWarnings.Count > 0; }
         }
 
         // "Task changesets: 17 of 19 selected · 2 dependency warnings"
@@ -630,7 +633,7 @@ namespace MultiMerge
             {
                 var selected = TaskChangesets.Count(c => c.IsSelected);
                 var text = string.Format(CultureInfo.InvariantCulture, "Task changesets: {0} of {1} selected", selected, TaskChangesets.Count);
-                if (_dependencyWarnings.Count > 0)
+                if (!HasStaleSelection && _dependencyWarnings.Count > 0)
                     text += " · " + TaskMergeText.Count(_dependencyWarnings.Count, "dependency warning");
                 return text;
             }
@@ -655,8 +658,12 @@ namespace MultiMerge
             get { return _planData != null && !IsBusy && !IsChainInProgress && (_plan == null || HasStaleSelection); }
         }
 
-        // Rimette tutte le caselle (un solo ricalcolo del piano).
+        // Modifica le caselle; Update plan applica la selezione in un solo ricalcolo.
         public DelegateCommand SelectAllChangesetsCommand { get; private set; }
+
+        public DelegateCommand<IList> IncludeChangesetsCommand { get; private set; }
+
+        public DelegateCommand<IList> ExcludeChangesetsCommand { get; private set; }
 
         // Ricalcola il piano con le caselle attuali.
         public DelegateCommand RecomputePlanCommand { get; private set; }
@@ -982,6 +989,7 @@ namespace MultiMerge
                 OpenInVsResolveConflictsCommand.RaiseCanExecuteChanged();
                 RestoreInputCommand.RaiseCanExecuteChanged();
                 SelectAllChangesetsCommand.RaiseCanExecuteChanged();
+                RaiseChangesetRowSelectionCommands();
                 RecomputePlanCommand.RaiseCanExecuteChanged();
                 CopyFollowUpsCommand.RaiseCanExecuteChanged();
                 UpdatePolicyEditability();
@@ -1037,6 +1045,7 @@ namespace MultiMerge
             OnPropertyChanged("ChangesetsHeaderText");
             OnPropertyChanged("HasStaleSelection");
             OnPropertyChanged("ShowRecomputePlan");
+            RaiseChangesetRowSelectionCommands();
             StartCommand.RaiseCanExecuteChanged();
             SelectAllChangesetsCommand.RaiseCanExecuteChanged();
             RecomputePlanCommand.RaiseCanExecuteChanged();
@@ -1841,25 +1850,43 @@ namespace MultiMerge
             await BuildPlanAndPreviewAsync();
         }
 
-        // Casella cambiata dall'utente (thread UI): ricalcolo del piano. Le caselle sono disabilitate
-        // mentre la scheda lavora o una catena e' in corso; se il ricalcolo non parte, Start resta
-        // disabilitato (HasStaleSelection) e "Plan again" lo rilancia.
+        // Le caselle cambiano subito, ma il piano si ricalcola solo con Update plan.
+        // HasStaleSelection impedisce Start mentre il piano appartiene alla scelta precedente.
         private void OnChangesetSelectionChanged(TaskMergeChangesetViewModel row)
         {
             RaiseSelectionProperties();
-            if (_planData == null || !CanChangeSelection)
-                return;
-            FireAndForget(() => RunBusyAsync(ReplanCoreAsync));
         }
 
-        private async Task SelectAllChangesetsCoreAsync()
+        public void RaiseChangesetRowSelectionCommands()
         {
-            if (_planData == null || IsChainInProgress)
+            IncludeChangesetsCommand.RaiseCanExecuteChanged();
+            ExcludeChangesetsCommand.RaiseCanExecuteChanged();
+        }
+
+        private bool CanSetChangesetsIncluded(IList rows, bool included)
+        {
+            return CanChangeSelection && rows != null && rows.OfType<TaskMergeChangesetViewModel>()
+                .Any(row => TaskChangesets.Contains(row) && row.IsSelected != included);
+        }
+
+        private void SetChangesetsIncluded(IList rows, bool included)
+        {
+            if (!CanSetChangesetsIncluded(rows, included))
+                return;
+            // Snapshot: SelectedItems appartiene alla vista e puo' cambiare durante le notifiche.
+            foreach (var row in rows.OfType<TaskMergeChangesetViewModel>()
+                .Where(TaskChangesets.Contains).ToList())
+                row.SetSelectedSilently(included);
+            RaiseSelectionProperties();
+        }
+
+        private void SelectAllChangesets()
+        {
+            if (!SelectAllChangesetsCanExecute())
                 return;
             foreach (var row in TaskChangesets)
                 row.SetSelectedSilently(true);
             RaiseSelectionProperties();
-            await ReplanCoreAsync();
         }
 
         // Piano con i changeset selezionati (planner puro), changeset di colleghi non fusi nel target,

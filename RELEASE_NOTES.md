@@ -1,5 +1,11 @@
 # MultiMerge release notes
 
+## 1.0.1 (2026-09-28)
+
+- Select multiple task changeset rows with Ctrl/Shift and include or exclude them together.
+- Defer checkbox changes until Update plan, avoiding repeated TFVC previews.
+- Keep Start disabled and label the previous plan while the selection has unapplied changes.
+
 ## 1.0.0 (2026-09-28)
 
 - Establish MultiMerge as an independent fork maintained by Luca Persichini.

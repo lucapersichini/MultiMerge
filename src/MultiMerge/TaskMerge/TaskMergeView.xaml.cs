@@ -29,6 +29,13 @@ namespace MultiMerge
             set { SetValue(IsHeaderEditorOpenProperty, value); }
         }
 
+        private void TaskChangesetsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var viewModel = DataContext as TaskMergeViewModel;
+            if (viewModel != null)
+                viewModel.RaiseChangesetRowSelectionCommands();
+        }
+
         // Righe dei passi delle parti non ancora eseguibili (A1): il clic non le seleziona (restano
         // "non interattive"), ma il mouse le raggiunge e i loro tooltip si vedono. Fa eccezione il menu
         // della colonna "Policy": l'azione di un passo di una parte successiva si deve poter cambiare

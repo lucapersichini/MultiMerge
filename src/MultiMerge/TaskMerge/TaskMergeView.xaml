@@ -714,22 +714,37 @@
                 <DockPanel DockPanel.Dock="Top" Margin="10,6,10,4">
                   <Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Top"
                           Style="{StaticResource LinkButton}"
-                          ToolTip="Select every changeset of the task again (the plan is computed once)"
+                          ToolTip="Include every changeset, then press Update plan"
                           Content="Select all" Command="{Binding SelectAllChangesetsCommand}" />
                   <Button DockPanel.Dock="Right" Margin="16,0,0,0" VerticalAlignment="Top"
                           Style="{StaticResource LinkButton}"
                           ToolTip="Plan the merge again with the changesets checked below"
-                          Content="Plan again"
+                          Content="Update plan"
                           Visibility="{Binding ShowRecomputePlan, Converter={StaticResource BoolToVisibility}}"
                           Command="{Binding RecomputePlanCommand}" />
                   <TextBlock Style="{StaticResource SecondaryText}" TextWrapping="Wrap"
-                             Text="Uncheck a changeset to leave it out: the plan and the preview are computed again. Excluded changesets are treated like other people's changesets." />
+                             Text="Change the checkboxes, or highlight rows with Ctrl/Shift and include or exclude them together. Press Update plan when finished. Excluded changesets are treated like other people's changesets." />
                 </DockPanel>
-                <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                  <ItemsControl ItemsSource="{Binding TaskChangesets}" Focusable="False" Margin="0,0,0,6"
+                <StackPanel DockPanel.Dock="Top" Margin="10,0,10,6">
+                  <WrapPanel>
+                    <Button Content="Include selected" Margin="0,0,8,0"
+                            Command="{Binding IncludeChangesetsCommand}"
+                            CommandParameter="{Binding SelectedItems, ElementName=TaskChangesetsList}" />
+                    <Button Content="Exclude selected"
+                            Command="{Binding ExcludeChangesetsCommand}"
+                            CommandParameter="{Binding SelectedItems, ElementName=TaskChangesetsList}" />
+                  </WrapPanel>
+                  <TextBlock Margin="0,6,0,0" TextWrapping="Wrap"
+                             Text="Selection changed: the steps and warnings below belong to the previous plan. Update plan before starting the merge."
+                             Visibility="{Binding HasStaleSelection, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+                  <ListBox x:Name="TaskChangesetsList" ItemsSource="{Binding TaskChangesets}"
+                           SelectionMode="Extended" SelectionChanged="TaskChangesetsList_SelectionChanged"
+                           Style="{StaticResource ThemedListBox}" ItemContainerStyle="{StaticResource ConflictListItem}"
+                           MaxHeight="220" Margin="0,0,0,6"
                                 Grid.IsSharedSizeScope="True"
                                 IsEnabled="{Binding CanChangeSelection}">
-                    <ItemsControl.ItemTemplate>
+                    <ListBox.ItemTemplate>
                       <DataTemplate DataType="{x:Type multiMerge:TaskMergeChangesetViewModel}">
                         <Grid Margin="10,2,10,2" Background="Transparent" ToolTip="{Binding ToolTipText}">
                           <Grid.ColumnDefinitions>
@@ -767,9 +782,8 @@
                           </DockPanel>
                         </Grid>
                       </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
-                </ScrollViewer>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
               </DockPanel>
             </Border>
           </Expander>

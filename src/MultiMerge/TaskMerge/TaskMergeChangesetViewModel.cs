@@ -9,7 +9,7 @@ namespace MultiMerge
 {
     // Un changeset del task nel pannello delle caselle della scheda "Merge from Task": selezionato
     // entra nel piano, escluso diventa per il planner un changeset "di terzi". Il cambio della casella
-    // chiede al view model principale di ricalcolare il piano (callback).
+    // notifica la scelta al view model; Update plan ricalcola piano e anteprima.
     public sealed class TaskMergeChangesetViewModel : BindableBase
     {
         private readonly Action<TaskMergeChangesetViewModel> _selectionChanged;
@@ -65,7 +65,7 @@ namespace MultiMerge
             }
         }
 
-        // Selezionato: il changeset entra nel piano. Il cambio fatto dall'utente ricalcola il piano.
+        // Selezionato: il changeset entra nel prossimo piano applicato con Update plan.
         public bool IsSelected
         {
             get { return _isSelected; }

@@ -2,7 +2,7 @@
 <!-- Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt. -->
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
 	<Metadata>
-		<Identity Id="MultiMerge.VS2017.c7d9470c-00e2-48d4-8a71-12036e43005f" Version="1.0.0" Language="en-US" Publisher="Luca Persichini" />
+		<Identity Id="MultiMerge.VS2017.c7d9470c-00e2-48d4-8a71-12036e43005f" Version="1.0.1" Language="en-US" Publisher="Luca Persichini" />
 		<DisplayName>MultiMerge for Visual Studio 2017</DisplayName>
 		<Description>Guided TFVC merges by work item, with per-file planning, configurable policies and conflict resolution.</Description>
 		<License>LICENSE.txt</License>

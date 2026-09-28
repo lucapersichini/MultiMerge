@@ -39,7 +39,7 @@ Enter the work item ID and target branch, then open the dedicated merge tab.
 
 ### 2. Choose the changesets to include
 
-Review the changesets associated with the work item. Excluding a changeset recomputes the plan and preview.
+Review the changesets associated with the work item. Use Ctrl/Shift to highlight multiple rows and include or exclude them together, or change individual checkboxes. Press **Update plan** once after making your choices.
 
 ![Work item changeset selection with identifying details redacted](screenshots/multimerge-changesets.png)
 
@@ -59,7 +59,7 @@ Choose which files to merge, discard or skip, and which lines to preserve. Prese
 
 1. Open **Team Explorer → MultiMerge → Merge From Task**.
 2. Select a work item and target branch, then open the **Merge from Task** tab.
-3. Review the plan and configure **Merge Policies** as needed.
+3. Choose the changesets to include and press **Update plan**. Review the updated plan and configure **Merge Policies** as needed.
 4. Start the merge and resolve conflicts.
 5. Build and test the target branch before confirming each check-in. Continue until all parts are complete.
 6. Review the manual follow-ups and update branch-specific packages through your normal process.
