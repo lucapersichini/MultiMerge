@@ -1,0 +1,98 @@
+﻿// Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
+using System;
+
+namespace MultiMerge
+{
+    public abstract class LoggerBase : ILogger
+    {
+        protected LoggerBase()
+        {
+            
+        }
+
+        public void Log(string message)
+        {
+            var fullMessage = DateTime.Now + ": " + message + Environment.NewLine;
+            WriteMessage(fullMessage);
+        }
+
+        public void Log(string message, Exception ex)
+        {
+            Log(message + Environment.NewLine + ex);
+        }
+
+        public void Debug(string message)
+        {
+            if (IsDebugEnabled())
+            {
+                var fullMessage = string.Format("{0} (DEBUG): {1} \r\n", DateTime.Now, message);
+                WriteMessage(fullMessage);
+            }
+        }
+
+        public void Debug(string message, params object[] args)
+        {
+            if (IsDebugEnabled())
+            {
+                var formatedMessage = string.Format(message, args);
+                var fullMessage = string.Format("{0} (DEBUG): {1} \r\n", DateTime.Now, formatedMessage);
+                WriteMessage(fullMessage);
+            }
+        }
+
+        public void Info(string message)
+        {
+            if (IsInfoEnabled())
+            {
+                var fullMessage = string.Format("{0} (INFO): {1} \r\n", DateTime.Now, message);
+                WriteMessage(fullMessage);
+            }
+        }
+
+        public void Info(string message, params object[] args)
+        {
+            if (IsDebugEnabled())
+            {
+                var formatedMessage = string.Format(message, args);
+                var fullMessage = string.Format("{0} (INFO): {1} \r\n", DateTime.Now, formatedMessage);
+                WriteMessage(fullMessage);
+            }
+        }
+
+        public void Error(string message)
+        {
+            if (IsErrorEnabled())
+            {
+                var fullMessage = string.Format("{0} (ERROR): {1} \r\n", DateTime.Now, message);
+                WriteMessage(fullMessage);
+            }
+        }
+
+        public void Error(string message, Exception ex)
+        {
+            if (IsDebugEnabled())
+            {
+                var formatedMessage = message + Environment.NewLine + ex.ToString();
+                var fullMessage = string.Format("{0} (ERROR): {1} \r\n", DateTime.Now, formatedMessage);
+                WriteMessage(fullMessage);
+            }
+        }
+
+        private bool IsDebugEnabled()
+        {
+            return true;
+        }
+
+        private bool IsInfoEnabled()
+        {
+            return true;
+        }
+
+        private bool IsErrorEnabled()
+        {
+            return true;
+        }
+
+        protected abstract void WriteMessage(string message);
+    }
+}

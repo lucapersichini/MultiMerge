@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt. -->
+<CommandTable xmlns="http://schemas.microsoft.com/VisualStudio/2005-10-18/CommandTable" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!--This is the file that defines the IDs for all the commands exposed by VisualStudio.-->
+  <Extern href="stdidcmd.h"/>
+  <!--This header contains the command ids for the menus provided by the shell.-->
+  <Extern href="vsshlids.h"/>
+  
+  <!-- Adds a reference to the KnownMonikers in the ImageCatalog for use in the <button> elements -->
+  <Include href="KnownImageIds.vsct"/>
+
+  <Commands package="guidPackage">
+      <!-- This is the sub-section that defines the menus and toolbars. -->
+      <Menus>
+          <!--
+      To define a menu element we need an ID, a parent group, a display priority,
+      a menu type, a name and a default text. The exception to requiring a parent
+      is if we are a top level piece of UI (i.e. a toolbar or a context menu. In other
+      words an element that doesn't live on any other command UI, or if we will later 
+      parent our command via a CommandPlacement element to one or more locations).
+      
+      In this example we define a toolbar, so we set the type attribute to Toolbar.
+      
+      Toolbars can set their priority field to affect where they are shown in the toolbar
+      tray. The lower 16 bits of the priority value is taken as a vertical row offset from
+      row 0 (where the standard toolbar is) and is further interpreted as a priority offset
+      within the row the toolbar appears in. So below, by specifying we are at priority 
+      0x0001 we say we want to be in the first row (below the standard toolbar) with a 
+      priority value of 1 relative to other toolbar's priority values that are in that same 
+      row.
+      -->
+          <Menu guid="guidShowMultiMergeCmdSet" id="MultiMergeToolbar" priority="0x0001" type="Toolbar">
+              <Strings>
+                  <!--
+          The String section contains the localizable strings for an element, in this case our
+          toolbar. In this example we are not defining a localizable set of commands, so we do not
+          specify the "language" attribute for the Strings tag. It is possible however to specify
+          different String sections inside any element definition, one for each supported language.
+          -->
+                  <ButtonText>MultiMerge</ButtonText>
+              </Strings>
+          </Menu>
+      </Menus>
+
+    <Groups>
+      <Group guid="guidShowMultiMergeCmdSet" id="MultiMergeGroup" priority="0x100">
+        <Parent guid="guidShowMultiMergeCmdSet" id="MultiMergeToolbar"/>
+      </Group>
+      <!-- Gruppo proprio nel menu Tools per "Merge from Task..." -->
+      <Group guid="guidShowMultiMergeCmdSet" id="TaskMergeToolsGroup" priority="0x0600">
+        <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_TOOLS"/>
+      </Group>
+    </Groups>
+
+    <Buttons>
+      <Button guid="guidShowMultiMergeCmdSet" id="ShowMultiMergeCommandId" priority="0x0100" type="Button">
+        <Parent guid="guidShowMultiMergeCmdSet" id="MultiMergeGroup" />
+        <!-- Use a KnownMoniker as icon. 
+             See more here https://marketplace.visualstudio.com/items?itemName=MadsKristensen.KnownMonikersExplorer -->
+          <Icon guid="ImageCatalogGuid" id="ButtonClick" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>MultiMerge.Show</LocCanonicalName>
+          <ButtonText>Show MultiMerge</ButtonText>
+        </Strings>
+      </Button>
+      <!-- Apre la scheda "Merge from Task" (tool window nel document well). Sta nella toolbar
+           (gruppo MultiMergeGroup) e, tramite CommandPlacement, anche nel menu Tools. -->
+      <Button guid="guidShowMultiMergeCmdSet" id="ShowTaskMergeCommandId" priority="0x0101" type="Button">
+        <Parent guid="guidShowMultiMergeCmdSet" id="MultiMergeGroup" />
+        <Icon guid="ImageCatalogGuid" id="Merge" />
+        <CommandFlag>IconIsMoniker</CommandFlag>
+        <Strings>
+          <LocCanonicalName>MultiMerge.ShowTaskMerge</LocCanonicalName>
+          <ButtonText>Merge from Task...</ButtonText>
+        </Strings>
+      </Button>
+    </Buttons>
+
+  </Commands>
+
+  <CommandPlacements>
+    <CommandPlacement guid="guidShowMultiMergeCmdSet" id="ShowTaskMergeCommandId" priority="0x0100">
+      <Parent guid="guidShowMultiMergeCmdSet" id="TaskMergeToolsGroup" />
+    </CommandPlacement>
+  </CommandPlacements>
+
+
+
+  <!--<KeyBindings>
+    <KeyBinding guid="guidShowMultiMergeCmdSet" id="ShowMultiMergeCommandId" editor="guidVSStd97" key1="K" mod1="Control" key2="0" mod2="Control" />
+  </KeyBindings>-->
+
+  <Symbols>
+    <GuidSymbol name="guidPackage" value="{c7d9470c-00e2-48d4-8a71-12036e43005f}" />
+
+    <GuidSymbol name="guidShowMultiMergeCmdSet" value="{3e489283-3885-49d6-92ac-1c118ebfdced}">
+      <IDSymbol name="MultiMergeGroup" value="0x1050" />
+      <IDSymbol name="MultiMergeToolbar" value="0x1030" />
+      <IDSymbol name="ShowMultiMergeCommandId" value="0x0100" />
+      <IDSymbol name="ShowTaskMergeCommandId" value="0x0101" />
+      <IDSymbol name="TaskMergeToolsGroup" value="0x1060" />
+    </GuidSymbol>
+    <GuidSymbol name="MultiMergeIcons" value="{f46f9858-d3f6-4893-84e5-434a1bf5504d}">
+      <IDSymbol name="Show" value="1" />
+    </GuidSymbol>
+  </Symbols>
+</CommandTable>

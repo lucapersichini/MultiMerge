@@ -1,3 +1,4 @@
+// Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
 #r @"../tools/FAKE/tools/FakeLib.dll"
 open Fake
 open System.Xml
@@ -9,7 +10,7 @@ let buildDir = buildDirBase + vsVersion
 
 
 // files
-let slnReferences = !!"./src/AutoMerge.sln"
+let slnReferences = !!"./src/MultiMerge.sln"
 
 // Targets
 Target "Clean" (fun _ ->

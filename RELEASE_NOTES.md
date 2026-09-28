@@ -1,3 +1,18 @@
+# MultiMerge release notes
+
+## 1.0.0 (2026-09-28)
+
+- Establish MultiMerge as an independent fork maintained by Luca Persichini.
+- Add guided work-item merges, per-file planning, conflict resolution and configurable team/personal policies.
+- Rename the extension, assemblies, namespaces, solution and projects to MultiMerge.
+- Use distinct Visual Studio package, command and Team Explorer identities.
+- Preserve existing team policies and import personal preferences on first use.
+- Build and 314 automated tests verified with Visual Studio 2026.
+
+## Original AutoMerge release history
+
+The entries below are retained from the upstream AutoMerge project.
+
 #### 0.2.6.10 (2021-03-19)
 * (fix) When you have multiple branches with same prefix, e.g. ABC and ABCDE. When merging to ABC method choses ABCDE instead, and as a result there are multiple branches with the same name in target branch selector
 

@@ -1,0 +1,9 @@
+MultiMerge
+Copyright 2026 Luca Persichini (modifications)
+
+Derived from AutoMerge, Copyright 2014 Kulikov Denis.
+Original project: https://github.com/CDuke/AutoMerge
+Licensed under the Apache License, Version 2.0.
+
+Source files in this fork were modified and renamed to introduce MultiMerge
+branding and the task merge, policy and conflict-resolution workflows.

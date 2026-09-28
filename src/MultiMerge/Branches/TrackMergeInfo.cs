@@ -1,0 +1,24 @@
+﻿// Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
+using System.Collections.Generic;
+
+namespace MultiMerge
+{
+	public class TrackMergeInfo
+	{
+	    public string OriginaBranch { get; set; }
+
+		public string OriginalComment { get; set; }
+
+		public List<string> FromOriginalToSourceBranches { get; set; }
+
+	    public string SourceBranch { get; set; }
+
+	    public string SourceComment { get; set; }
+
+        public long SourceChangesetId { get; set; }
+
+        public List<long> SourceWorkItemIds { get; set; }
+
+        public List<string> SourceWorkItemTitles { get; set; }
+	}
+}

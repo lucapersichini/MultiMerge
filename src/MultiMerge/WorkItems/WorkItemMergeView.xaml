@@ -1,0 +1,53 @@
+<!-- Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt. -->
+<UserControl x:Class="MultiMerge.WorkItemMergeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:multiMerge="clr-namespace:MultiMerge;assembly="
+             xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:wpf="clr-namespace:Microsoft.TeamFoundation.Controls.WPF;assembly=Microsoft.TeamFoundation.Controls"
+             d:DataContext="{d:DesignInstance multiMerge:WorkItemMergeViewModel}"
+             mc:Ignorable="d">
+  <!-- Lanciatore della scheda "Merge from Task": qui solo work item e target, il merge vive nella scheda. -->
+  <StackPanel Margin="6,6,6,6">
+    <wpf:LabeledTextBox x:Name="workItemIdTextBox"
+                         Margin="0"
+                         AcceptsReturn="False"
+                         HintText="Enter the ID of the work item"
+                         Text="{Binding Path=WorkItemIdText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+      <wpf:LabeledTextBox.InputBindings>
+        <KeyBinding Key="Enter" Command="{Binding OpenTabCommand}" />
+      </wpf:LabeledTextBox.InputBindings>
+    </wpf:LabeledTextBox>
+    <wpf:LabeledTextBox x:Name="targetBranchesTextBox"
+                         Margin="0,6,0,0"
+                         AcceptsReturn="False"
+                         HintText="Target branch, e.g. $/Project/Release"
+                         Text="{Binding Path=TargetBranchesText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}">
+      <wpf:LabeledTextBox.InputBindings>
+        <KeyBinding Key="Enter" Command="{Binding OpenTabCommand}" />
+      </wpf:LabeledTextBox.InputBindings>
+    </wpf:LabeledTextBox>
+    <Button MinWidth="75" MinHeight="23" Margin="0,8,0,0" HorizontalAlignment="Left" Padding="10,2,10,2"
+            ToolTip="Open the Merge from Task tab with this work item and target, and load the plan"
+            Command="{Binding OpenTabCommand}" Content="Open in Merge from Task tab" />
+    <TextBlock Margin="0,6,0,0" TextWrapping="Wrap"
+               Foreground="{DynamicResource {x:Static vsshell:VsBrushes.GrayTextKey}}"
+               Text="The merge runs in a dedicated tab with progress and inline conflict resolution." />
+    <TextBlock Margin="0,6,0,0" TextWrapping="Wrap" Text="{Binding StatusMessage}">
+      <TextBlock.Style>
+        <Style TargetType="TextBlock">
+          <Style.Triggers>
+            <DataTrigger Binding="{Binding StatusMessage}" Value="{x:Null}">
+              <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding StatusMessage}" Value="">
+              <Setter Property="Visibility" Value="Collapsed" />
+            </DataTrigger>
+          </Style.Triggers>
+        </Style>
+      </TextBlock.Style>
+    </TextBlock>
+  </StackPanel>
+</UserControl>
