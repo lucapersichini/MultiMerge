@@ -2,7 +2,8 @@
 
 ## 1.1.0 (Git preview)
 
-- Add a Git tab alongside the existing TFVC workflow, with local repository/branch selection and Ctrl/Shift commit selection.
+- Automatically show a single Git or TFVC workflow from the solution/provider context; show explicit choices for unavailable, multiple or conflicting contexts. Keep the context locked during transfers and discard stale detection results.
+- Add Git local repository/branch selection and Ctrl/Shift commit selection.
 - Preview cherry-picks in an isolated temporary clone, then apply approved commits locally with original messages and source SHA provenance.
 - Detect patch-equivalent commits, refuse dirty working trees and invalidate plans when source or target branches move.
 - Resolve UTF-8 text conflicts in current/incoming/result panels, save and stage, continue or abort the current cherry-pick.

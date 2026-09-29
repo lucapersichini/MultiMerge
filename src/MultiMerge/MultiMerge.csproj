@@ -201,6 +201,9 @@
     <Compile Include="WorkItems\WorkItemMergeViewModel.cs" />
     <Compile Include="WorkItems\TaskMergeSession.cs" />
     <Compile Include="TaskMerge\TaskMergeToolWindow.cs" />
+    <Compile Include="TaskMerge\MergeContextResolver.cs" />
+    <Compile Include="TaskMerge\MergeContextView.cs" />
+    <Compile Include="TaskMerge\VisualStudioMergeContext.cs" />
     <Compile Include="TaskMerge\TaskMergeView.xaml.cs">
       <DependentUpon>TaskMergeView.xaml</DependentUpon>
     </Compile>

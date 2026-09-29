@@ -37,6 +37,7 @@ namespace MultiMerge.Commands
                     var window = await package.ShowToolWindowAsync(typeof(TaskMergeToolWindow), 0, true, package.DisposalToken);
                     if (window == null || window.Frame == null)
                         throw new NotSupportedException("Cannot create the Merge from Task window.");
+                    ((TaskMergeToolWindow)window).RefreshContext();
                 }
                 catch (Exception ex)
                 {

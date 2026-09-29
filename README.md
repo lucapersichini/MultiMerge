@@ -88,9 +88,9 @@ Legacy single-changeset preferences are copied from `%APPDATA%\Visual Studio Aut
 
 ## Git preview
 
-The **Merge from Task** window now has **TFVC** and **Git** tabs. In Git:
+The **Merge from Task** window automatically shows the Git or TFVC workflow for an unambiguous solution context. Its header identifies the repository or workspace. Multiple repositories, conflicting mappings or unavailable context show explicit choices. Context changes are blocked during an active transfer. Use **Detect context** to retry detection. Opening from Team Explorer explicitly selects TFVC. In Git:
 
-1. Enter a local repository folder and press **Load repository**.
+1. The detected Git repository is loaded automatically. For an explicit Git choice, enter a local repository folder and press **Load repository**.
 2. Choose local source and target branches, then **Load commits** (latest 200 commits not reachable from the target).
 3. Select commits with the checkboxes or Ctrl/Shift plus **Include selected**. Press **Update plan** for an isolated preview.
 4. Review the plan and **Apply selected commits**. The target branch is checked out and each selected commit is cherry-picked locally, preserving its message and original SHA. Nothing is pushed automatically.
@@ -101,7 +101,7 @@ This first Git version requires Git for Windows and configured Git author identi
 
 ## Build and tests
 
-The Git preview was built and all 332 automated tests passed using Visual Studio 2026 MSBuild and VSTest, including 12 tests with real Git repositories. A separate WPF integration run passed 14 checks against synthetic fixtures from the private Git laboratory, including selected-commit application, compiling the result, and editing/staging/continuing a conflict. This run hosted the compiled view and view model outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
+The Git preview was built and all 351 automated tests passed using Visual Studio 2026 MSBuild and VSTest, including 12 tests with real Git repositories and 19 context-resolution cases. A separate WPF integration run passed 14 checks against synthetic fixtures from the private Git laboratory, including selected-commit application, compiling the result, and editing/staging/continuing a conflict. A further 11 WPF/context checks validated the single-workflow host, transfer locking, ambiguous repositories and linked Git worktrees. These runs hosted the compiled views and view models outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
 
 Use **MSBuild from Visual Studio**, with the Visual Studio extension development tools and .NET Framework targeting pack installed:
 
