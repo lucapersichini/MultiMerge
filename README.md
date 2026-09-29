@@ -86,9 +86,22 @@ Legacy single-changeset preferences are copied from `%APPDATA%\Visual Studio Aut
 - Task merges stop on unsupported operations such as renames, branching, rollback or undelete.
 - Resuming a merge chain after closing Visual Studio is not currently supported.
 
+## Git preview
+
+The **Merge from Task** window now has **TFVC** and **Git** tabs. In Git:
+
+1. Enter a local repository folder and press **Load repository**.
+2. Choose local source and target branches, then **Load commits** (latest 200 commits not reachable from the target).
+3. Select commits with the checkboxes or Ctrl/Shift plus **Include selected**. Press **Update plan** for an isolated preview.
+4. Review the plan and **Apply selected commits**. The target branch is checked out and each selected commit is cherry-picked locally, preserving its message and original SHA. Nothing is pushed automatically.
+5. For text conflicts, review current/incoming content, edit the result, **Save and stage**, then **Continue**. Binary, non-UTF-8 and structural conflicts must be resolved and staged in an external Git tool.
+6. **Abort current cherry-pick** cancels the interrupted pick; previously completed commits stay on the target. Build and test before pushing.
+
+This first Git version requires Git for Windows and configured Git author identity. It refuses a dirty working tree and checks that branches have not moved since preview. Git policies, automatic work-item discovery, merge-commit mainline selection and recovery after restarting Visual Studio are not implemented yet. Git cannot prove that selected commits include all code dependencies.
+
 ## Build and tests
 
-The fork was built and its 314 automated tests passed using Visual Studio 2026 MSBuild and VSTest. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
+The Git preview was built and all 332 automated tests passed using Visual Studio 2026 MSBuild and VSTest, including 12 tests with real Git repositories. A separate WPF integration run passed 14 checks against synthetic fixtures from the private Git laboratory, including selected-commit application, compiling the result, and editing/staging/continuing a conflict. This run hosted the compiled view and view model outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
 
 Use **MSBuild from Visual Studio**, with the Visual Studio extension development tools and .NET Framework targeting pack installed:
 

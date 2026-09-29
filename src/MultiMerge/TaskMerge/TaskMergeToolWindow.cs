@@ -1,6 +1,8 @@
 // Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
 using System;
 using System.Runtime.InteropServices;
+using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Shell;
@@ -19,6 +21,8 @@ namespace MultiMerge
         public const string WindowCaption = "Merge from Task";
 
         private static TaskMergeViewModel _sharedViewModel;
+        private static GitMergeViewModel _sharedGitViewModel;
+        private TabControl _tabs;
 
         public TaskMergeToolWindow()
             : this(null)
@@ -38,7 +42,21 @@ namespace MultiMerge
             if (_sharedViewModel == null)
                 _sharedViewModel = new TaskMergeViewModel(serviceProvider, new VsLogger(serviceProvider));
 
-            Content = new TaskMergeView { DataContext = _sharedViewModel };
+            if (_sharedGitViewModel == null) _sharedGitViewModel = new GitMergeViewModel();
+            _tabs = new TabControl();
+            var tfvc = new TabItem { Header = "TFVC", Content = new TaskMergeView { DataContext = _sharedViewModel } };
+            tfvc.SetBinding(TabItem.IsEnabledProperty, new Binding("CanLeave") { Source = _sharedGitViewModel });
+            var git = new TabItem { Header = "Git", Content = new GitMergeView { DataContext = _sharedGitViewModel } };
+            var gitStyle = new System.Windows.Style(typeof(TabItem));
+            foreach (var property in new[] { "IsBusy", "IsChainInProgress" })
+            {
+                var trigger = new System.Windows.DataTrigger { Binding = new Binding(property) { Source = _sharedViewModel }, Value = true };
+                trigger.Setters.Add(new System.Windows.Setter(TabItem.IsEnabledProperty, false));
+                gitStyle.Triggers.Add(trigger);
+            }
+            git.Style = gitStyle;
+            _tabs.Items.Add(tfvc); _tabs.Items.Add(git);
+            Content = _tabs;
         }
 
         // View model condiviso della scheda (null finche' la scheda non e' mai stata creata).
@@ -77,6 +95,9 @@ namespace MultiMerge
                 if (window == null || window.Frame == null || _sharedViewModel == null)
                     throw new NotSupportedException("Cannot create the Merge from Task window.");
 
+                if (_sharedGitViewModel != null && !_sharedGitViewModel.CanLeave)
+                    throw new InvalidOperationException("Finish or abort the Git transfer before opening a TFVC task.");
+                ((TaskMergeToolWindow)window)._tabs.SelectedIndex = 0;
                 _sharedViewModel.OpenFromTeamExplorer(workItemIdText, targetBranchText);
             }
             catch (Exception ex)

@@ -22,6 +22,7 @@ namespace MultiMerge
             InitializeComponent();
             SummaryText.Text = string.Format(CultureInfo.InvariantCulture, "Work item #{0}: {1}",
                 workItemId, TaskMergeText.Count(warnings.Count, "warning"));
+            if (workItemId <= 0) { SummaryText.Text = "Git transfer confirmation"; ConfirmButton.Content = "Apply selected commits"; }
             WarningsText.Text = string.Join("\n\n", warnings.Select((warning, index) =>
                 (index + 1).ToString(CultureInfo.InvariantCulture) + ". " + warning));
             Closed += (sender, args) => _confirmation.TrySetResult(_confirmed);

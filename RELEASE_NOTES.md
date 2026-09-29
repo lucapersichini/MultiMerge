@@ -1,5 +1,13 @@
 # MultiMerge release notes
 
+## 1.1.0 (Git preview)
+
+- Add a Git tab alongside the existing TFVC workflow, with local repository/branch selection and Ctrl/Shift commit selection.
+- Preview cherry-picks in an isolated temporary clone, then apply approved commits locally with original messages and source SHA provenance.
+- Detect patch-equivalent commits, refuse dirty working trees and invalidate plans when source or target branches move.
+- Resolve UTF-8 text conflicts in current/incoming/result panels, save and stage, continue or abort the current cherry-pick.
+- First Git version limits: local branches, up to 200 commits, no Git policies or work-item discovery yet, no merge commits requiring mainline selection, no session restore after restarting Visual Studio. Abort retains earlier completed commits. Nothing is pushed automatically.
+
 ## 1.0.2 (2026-09-28)
 
 - Populate check-in comments with the original comments of the changesets delivered in each part, including partial check-ins and Pending Changes.
