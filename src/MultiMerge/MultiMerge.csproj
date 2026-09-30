@@ -201,9 +201,19 @@
     <Compile Include="WorkItems\WorkItemMergeViewModel.cs" />
     <Compile Include="WorkItems\TaskMergeSession.cs" />
     <Compile Include="TaskMerge\TaskMergeToolWindow.cs" />
+    <Compile Include="TaskMerge\MergeContextResolver.cs" />
+    <Compile Include="TaskMerge\MergeContextView.cs" />
+    <Compile Include="TaskMerge\VisualStudioMergeContext.cs" />
     <Compile Include="TaskMerge\TaskMergeView.xaml.cs">
       <DependentUpon>TaskMergeView.xaml</DependentUpon>
     </Compile>
+    <Compile Include="GitMerge\GitTransferEngine.cs" />
+    <Compile Include="GitMerge\GitAdvanced.cs" />
+    <Compile Include="GitMerge\GitSessionStore.cs" />
+    <Compile Include="GitMerge\GitBatchTransfer.cs" />
+    <Compile Include="GitMerge\GitPolicyWindow.cs" />
+    <Compile Include="GitMerge\GitMergeViewModel.cs" />
+    <Compile Include="GitMerge\GitMergeView.xaml.cs"><DependentUpon>GitMergeView.xaml</DependentUpon></Compile>
     <Compile Include="TaskMerge\TaskMergeViewModel.cs" />
     <Compile Include="TaskMerge\TaskMergeStepViewModel.cs" />
     <Compile Include="TaskMerge\TaskMergeChangesetViewModel.cs" />
@@ -299,6 +309,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="GitMerge\GitMergeView.xaml"><SubType>Designer</SubType><Generator>MSBuild:Compile</Generator></Page>
     <Page Include="TaskMerge\TaskMergeView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

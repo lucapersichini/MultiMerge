@@ -1,0 +1,79 @@
+<UserControl x:Class="MultiMerge.GitMergeView"
+ xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+ xmlns:vsshell="clr-namespace:Microsoft.VisualStudio.Shell;assembly=Microsoft.VisualStudio.Shell.15.0"
+ Background="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"
+ Foreground="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}">
+ <UserControl.Resources>
+  <Style TargetType="TextBox"><Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"/><Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/><Setter Property="Padding" Value="5"/></Style>
+  <Style TargetType="ListBox"><Setter Property="Background" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBackgroundKey}}"/><Setter Property="Foreground" Value="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowTextKey}}"/></Style>
+  <Style TargetType="Button"><Setter Property="Padding" Value="10,5"/><Setter Property="Margin" Value="4,0,0,0"/></Style>
+  <BooleanToVisibilityConverter x:Key="Visibility"/>
+ </UserControl.Resources>
+ <ScrollViewer VerticalScrollBarVisibility="Auto"><StackPanel Margin="14">
+  <TextBlock Text="Git · selected commit transfer" FontSize="20" FontWeight="SemiBold"/>
+  <TextBlock Margin="0,6,0,12" Text="Choose commits, preview the transfer, then apply them to a local target branch." TextWrapping="Wrap"/>
+  <Grid IsEnabled="{Binding CanEditInputs}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Repository folder" VerticalAlignment="Center" Margin="0,0,10,0"/>
+   <TextBox x:Name="RepositoryInput" Grid.Column="1" Text="{Binding RepositoryPath, UpdateSourceTrigger=PropertyChanged}"/>
+   <Button Grid.Column="2" Content="Load repository" Command="{Binding LoadRepositoryCommand}"/>
+  </Grid>
+  <Grid Margin="0,10,0,0" IsEnabled="{Binding CanEditInputs}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Source" VerticalAlignment="Center" Margin="0,0,10,0"/>
+   <ComboBox Grid.Column="1" ItemsSource="{Binding Branches}" SelectedItem="{Binding Source}"/>
+   <TextBlock Grid.Column="2" Text="Target" VerticalAlignment="Center" Margin="14,0,10,0"/>
+   <ComboBox Grid.Column="3" ItemsSource="{Binding Branches}" SelectedItem="{Binding Target}"/>
+   <Button Grid.Column="4" Content="Load commits" Command="{Binding LoadCommitsCommand}"/>
+  </Grid>
+  <Grid Margin="0,10,0,0" IsEnabled="{Binding CanEditInputs}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Other target branches (semicolon separated)" VerticalAlignment="Center" Margin="0,0,10,0"/>
+   <TextBox Grid.Column="1" Text="{Binding OtherTargets, UpdateSourceTrigger=PropertyChanged}" ToolTip="Each target is previewed separately. A conflict pauses the batch before later branches."/>
+   <TextBlock Grid.Column="2" Margin="10,0,0,0" VerticalAlignment="Center" Text="Runs in listed order"/>
+  </Grid>
+  <Grid Margin="0,10,0,0" IsEnabled="{Binding CanEditInputs}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="140"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Task ID in commit messages" VerticalAlignment="Center" Margin="0,0,10,0"/>
+   <TextBox Grid.Column="1" Text="{Binding TaskId, UpdateSourceTrigger=PropertyChanged}" ToolTip="Matches AB#123, Task #123 or Work item 123. Review the found commits before applying."/>
+   <Button Grid.Column="2" Content="Select task commits" Command="{Binding FindTaskCommand}"/>
+   <TextBlock Grid.Column="3" Margin="10,0,0,0" VerticalAlignment="Center" Text="Review the selected commits and their dependencies." TextWrapping="Wrap"/>
+  </Grid>
+  <DockPanel Margin="0,14,0,5"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+   <Button Content="Include selected" Command="{Binding IncludeCommand}" CommandParameter="{Binding SelectedItems, ElementName=CommitList}"/>
+   <Button Content="Exclude selected" Command="{Binding ExcludeCommand}" CommandParameter="{Binding SelectedItems, ElementName=CommitList}"/>
+   <Button Content="Policies..." Command="{Binding OpenPolicyCommand}"/>
+   <Button Content="Update plan" Command="{Binding UpdatePlanCommand}"/>
+  </StackPanel><TextBlock Text="{Binding SelectionSummary}" VerticalAlignment="Center"/></DockPanel>
+  <TextBlock Text="Use Ctrl/Shift to select rows. Checkboxes decide which commits to transfer; Update plan applies the selection." Margin="0,0,0,6" TextWrapping="Wrap"/>
+  <ListBox x:Name="CommitList" ItemsSource="{Binding Commits}" SelectionMode="Extended" SelectionChanged="CommitList_SelectionChanged" IsEnabled="{Binding CanEditInputs}" MaxHeight="240" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+   <ListBox.ItemTemplate><DataTemplate><Grid ToolTip="{Binding Commit.Comment}"><Grid.ColumnDefinitions><ColumnDefinition Width="28"/><ColumnDefinition Width="85"/><ColumnDefinition Width="150"/><ColumnDefinition Width="*"/><ColumnDefinition Width="135"/></Grid.ColumnDefinitions>
+    <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
+    <TextBlock Grid.Column="1" Text="{Binding Commit.ShortSha, Mode=OneWay}"/>
+    <TextBlock Grid.Column="2" Text="{Binding Commit.Author}" Margin="0,0,10,0"/>
+    <StackPanel Grid.Column="3" Orientation="Horizontal"><TextBlock Text="{Binding Commit.Subject, Mode=OneWay}"/><TextBlock Text=" · already applied" Foreground="DarkOrange" Visibility="{Binding Commit.AlreadyApplied, Converter={StaticResource Visibility}}"/></StackPanel>
+    <StackPanel Grid.Column="4" Orientation="Horizontal" Visibility="{Binding Commit.IsMerge, Converter={StaticResource Visibility}}"><TextBlock Text="Mainline" VerticalAlignment="Center"/><TextBox Width="34" Margin="5,0,0,0" Text="{Binding Mainline, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter 1 or 2 after checking which parent contains the main branch."/></StackPanel>
+   </Grid></DataTemplate></ListBox.ItemTemplate>
+  </ListBox>
+  <ProgressBar Height="4" Margin="0,10,0,0" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource Visibility}}"/>
+  <Border Margin="0,12,0,8" Padding="10" BorderThickness="1" BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"><TextBlock Text="{Binding Status, Mode=OneWay}" TextWrapping="Wrap"/></Border>
+  <TextBlock Text="Transfer plan" FontWeight="SemiBold"/>
+  <ItemsControl ItemsSource="{Binding Steps}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Margin="0,3" TextWrapping="Wrap"><Run Text="{Binding Target, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Commit.ShortSha, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Status, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" · "/><Run Text="{Binding Commit.Subject, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Details, Mode=OneWay}"/></TextBlock></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+  <TextBlock Text="{Binding PolicyDetails, Mode=OneWay}" TextWrapping="Wrap" Margin="0,6"/>
+  <ItemsControl ItemsSource="{Binding Warnings}" Margin="0,6"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="DarkOrange" TextWrapping="Wrap" Margin="0,3"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+  <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8">
+   <Button Content="Apply selected commits" Command="{Binding ApplyCommand}"/>
+   <Button Content="Continue" Command="{Binding ContinueCommand}"/>
+   <Button Content="Abort current cherry-pick" Command="{Binding AbortCommand}"/>
+  </StackPanel>
+  <Expander Header="Conflict resolution" IsExpanded="True" Margin="0,10" Visibility="{Binding IsActive, Converter={StaticResource Visibility}}"><StackPanel>
+   <DockPanel><Button DockPanel.Dock="Right" Content="Open selected conflict" Command="{Binding OpenConflictCommand}"/><ListBox ItemsSource="{Binding Conflicts}" SelectedItem="{Binding SelectedConflict}" MaxHeight="100"/></DockPanel>
+   <TextBlock Text="{Binding ConflictNote}" Margin="0,8" TextWrapping="Wrap"/>
+   <Grid Height="260"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
+    <TextBlock Text="Current target"/><TextBlock Grid.Column="1" Text="Incoming commit"/><TextBlock Grid.Column="2" Text="Result (editable)"/>
+    <TextBox Grid.Row="1" Text="{Binding CurrentText, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,5,5,0"/>
+    <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding IncomingText, Mode=OneWay}" IsReadOnly="True" FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,5,5,0"/>
+    <TextBox x:Name="ConflictResult" Grid.Row="1" Grid.Column="2" Text="{Binding ResultText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding CanEditResult}" AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas" FontSize="12" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,5,0,0"/>
+   </Grid>
+   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8"><Button Content="Take current" Command="{Binding TakeCurrentCommand}"/><Button Content="Take incoming" Command="{Binding TakeIncomingCommand}"/><Button Content="Save and stage" Command="{Binding SaveConflictCommand}"/></StackPanel>
+  </StackPanel></Expander>
+  <Expander Header="Log"><TextBox Text="{Binding LogText, Mode=OneWay}" IsReadOnly="True" MaxHeight="180" VerticalScrollBarVisibility="Auto" TextWrapping="Wrap"/></Expander>
+ </StackPanel></ScrollViewer>
+</UserControl>

@@ -2,7 +2,7 @@
 
 **Task-based transfers for both TFVC and Git, in one Visual Studio extension.**
 
-[TFVC release on Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=lucapersichini.MultiMerge) · [Git 1.2.0 preview source](https://github.com/lucapersichini/MultiMerge/tree/feature/git-preview) · [Git preview release notes](https://github.com/lucapersichini/MultiMerge/blob/feature/git-preview/RELEASE_NOTES.md) · [Apache 2.0 license](LICENSE.txt)
+[Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=lucapersichini.MultiMerge) · [Release notes](RELEASE_NOTES.md) · [Apache 2.0 license](LICENSE.txt)
 
 MultiMerge detects whether the active Visual Studio context uses **TFVC or Git** and opens the matching workflow. In either mode, you choose the changes associated with a task, inspect the plan and resolve conflicts before completing the transfer. When the context is ambiguous, you choose the repository or TFVC project explicitly. It does not convert history between Git and TFVC.
 
@@ -19,17 +19,17 @@ MultiMerge detects whether the active Visual Studio context uses **TFVC or Git**
 | [**TFVC**](#tfvc-run-a-task-merge) | Work-item changesets | One target branch per task merge; review and check in each part. The original single-changeset workflow is also available. |
 | [**Git**](#git-transfer-selected-commits) | Commits matched to a task or selected manually | One or more local target branches; preview each, apply in order, then build, test and push when ready. |
 
-**Availability:** The dual-mode Git workflow is in the [1.2.0 preview branch](https://github.com/lucapersichini/MultiMerge/tree/feature/git-preview). The Marketplace link above is for the existing TFVC release; do not assume it contains the Git workflow yet.
+**Availability:** The Git and TFVC source is on `master` in version 1.2.0. The Marketplace package has not yet been updated to 1.2.0; check its version before installing if you need Git mode.
 
 Maintained by **Luca Persichini**. Based on [AutoMerge by Kulikov Denis (CDuke)](https://github.com/CDuke/AutoMerge), under the Apache License 2.0.
 
 ## Install
 
-For the TFVC release, download MultiMerge from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=lucapersichini.MultiMerge), close Visual Studio, install the VSIX, then reopen **Team Explorer → MultiMerge**.
+For the currently published TFVC release, download MultiMerge from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=lucapersichini.MultiMerge), close Visual Studio, install the VSIX, then reopen **Team Explorer → MultiMerge**.
 
-For the Git 1.2.0 preview, check out [`feature/git-preview`](https://github.com/lucapersichini/MultiMerge/tree/feature/git-preview), build the Release VSIX using the command below, close Visual Studio and install it. Open MultiMerge in a Git solution to use the Git workflow. A repository with both providers or no clear context asks you to choose.
+For the dual-mode 1.2.0 source, check out `master`, build the Release VSIX using the command below, close Visual Studio and install it. Open MultiMerge in a Git solution to use the Git workflow. A repository with both providers or no clear context asks you to choose.
 
-The TFVC workflow has been tested on **Visual Studio 2026 Professional / Enterprise on Windows (64-bit)**; it needs a workspace that maps the target branch. The Git preview has been built and tested with Visual Studio 2026 tooling and a WPF host, but still needs validation inside the installed IDE. The Marketplace manifest also permits Visual Studio 2022 17.14+, which has not yet been validated by the maintainer.
+The TFVC workflow has been tested on **Visual Studio 2026 Professional / Enterprise on Windows (64-bit)**; it needs a workspace that maps the target branch. Git mode 1.2.0 has been built and tested with Visual Studio 2026 tooling and a WPF host, but still needs validation inside the installed IDE. The Marketplace manifest also permits Visual Studio 2022 17.14+, which has not yet been validated by the maintainer.
 
 ## A look at the TFVC workflow
 
@@ -92,8 +92,6 @@ Legacy single-changeset preferences are copied from `%APPDATA%\Visual Studio Aut
 
 ## Git: transfer selected commits
 
-The steps in this section describe the [Git 1.2.0 preview branch](https://github.com/lucapersichini/MultiMerge/tree/feature/git-preview), not the current `master` source or Marketplace package.
-
 The Merge from Task window automatically shows Git or TFVC when the current solution has one clear context. When it is ambiguous, choose the repository or connected TFVC project explicitly. The context is locked during active transfers.
 
 1. Choose the local source and first target branch. Additional targets can be entered separated by semicolons; they are processed in order.
@@ -108,9 +106,9 @@ The extension saves an active transfer journal in the repository's Git directory
 
 ## Build and tests
 
-The Git 1.2.0 preview branch was built with Visual Studio 2026 MSBuild and all 366 automated tests passed with VSTest, including real Git repositories for policy decisions, task lookup, multi-target transfers, merge parents, and recovery. A WPF integration run passed 16 checks against synthetic fixtures from the private Git laboratory: task selection, two target branches, application, compilation of the result, conflict resolution, and restart recovery. A separate 11-check WPF/context run validated the single-workflow host, transfer locking, ambiguous repositories and linked Git worktrees. These runs host the compiled views and view models outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
+The Git workflow was built with Visual Studio 2026 MSBuild and all 366 automated tests passed with VSTest, including real Git repositories for policy decisions, task lookup, multi-target transfers, merge parents, and recovery. A WPF integration run passed 16 checks against synthetic fixtures from the private Git laboratory: task selection, two target branches, application, compilation of the result, conflict resolution, and restart recovery. A separate 11-check WPF/context run validated the single-workflow host, transfer locking, ambiguous repositories and linked Git worktrees. These runs host the compiled views and view models outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
 
-Use **MSBuild from Visual Studio**, with the Visual Studio extension development tools and .NET Framework targeting pack installed. Check out `feature/git-preview` before running these commands to build the dual-mode version:
+Use **MSBuild from Visual Studio**, with the Visual Studio extension development tools and .NET Framework targeting pack installed:
 
 ```powershell
 MSBuild.exe src\MultiMerge.sln /restore /t:Build /p:Configuration=Release /p:VisualStudioVersion=18.0

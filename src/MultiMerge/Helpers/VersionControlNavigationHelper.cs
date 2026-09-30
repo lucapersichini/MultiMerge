@@ -1,4 +1,4 @@
-﻿// Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
+// Modified by Luca Persichini in 2026 for the MultiMerge fork; see NOTICE.txt.
 using System;
 using MultiMerge.VersionControl;
 using Microsoft.TeamFoundation.Client;
@@ -18,31 +18,23 @@ namespace MultiMerge
 		{
 		}
 
-		public static bool IsProviderActive(IServiceProvider serviceProvider, VersionControlProvider provider)
-		{
-			if (serviceProvider != null)
-			{
-				var service = serviceProvider.GetService<IVsRegisterScciProvider>();
-				if (service != null)
-				{
-					// ISSUE: variable of a compiler-generated type
-					var providerInterface = service as IVsGetScciProviderInterface;
-					if (providerInterface != null)
-					{
-						Guid pguidSCCProvider;
-						// ISSUE: reference to a compiler-generated method
-						providerInterface.GetSourceControlProviderID(out pguidSCCProvider);
-						if (pguidSCCProvider == GetProviderGuid(provider))
-							return true;
-						if (Guid.Empty.Equals(pguidSCCProvider))
-							return provider == VersionControlProvider.TeamFoundation;
-						return false;
-					}
-				}
-			}
-			return true;
-		}
+        public static VersionControlProvider? GetActiveProvider(IServiceProvider serviceProvider)
+        {
+            ThreadHelper.ThrowIfNotOnUIThread();
+            if (serviceProvider == null) return null;
+            var service = serviceProvider.GetService<IVsRegisterScciProvider>() as IVsGetScciProviderInterface;
+            if (service == null) return null;
+            Guid id;
+            try { service.GetSourceControlProviderID(out id); } catch (System.Runtime.InteropServices.COMException) { return null; }
+            if (id == GitProviderGuid) return VersionControlProvider.Git;
+            if (id == TfsProviderGuid) return VersionControlProvider.TeamFoundation;
+            return null;
+        }
 
+        public static bool IsProviderActive(IServiceProvider serviceProvider, VersionControlProvider provider)
+        {
+            return GetActiveProvider(serviceProvider) == provider;
+        }
 		public static UIContext GetProviderUIContext(VersionControlProvider provider)
 		{
 			return UIContext.FromUIContextGuid(GetProviderGuid(provider));
