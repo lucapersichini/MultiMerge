@@ -25,24 +25,38 @@
    <ComboBox Grid.Column="3" ItemsSource="{Binding Branches}" SelectedItem="{Binding Target}"/>
    <Button Grid.Column="4" Content="Load commits" Command="{Binding LoadCommitsCommand}"/>
   </Grid>
+  <Grid Margin="0,10,0,0" IsEnabled="{Binding CanEditInputs}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Other target branches (semicolon separated)" VerticalAlignment="Center" Margin="0,0,10,0"/>
+   <TextBox Grid.Column="1" Text="{Binding OtherTargets, UpdateSourceTrigger=PropertyChanged}" ToolTip="Each target is previewed separately. A conflict pauses the batch before later branches."/>
+   <TextBlock Grid.Column="2" Margin="10,0,0,0" VerticalAlignment="Center" Text="Runs in listed order"/>
+  </Grid>
+  <Grid Margin="0,10,0,0" IsEnabled="{Binding CanEditInputs}"><Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="140"/><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <TextBlock Text="Task ID in commit messages" VerticalAlignment="Center" Margin="0,0,10,0"/>
+   <TextBox Grid.Column="1" Text="{Binding TaskId, UpdateSourceTrigger=PropertyChanged}" ToolTip="Matches AB#123, Task #123 or Work item 123. Review the found commits before applying."/>
+   <Button Grid.Column="2" Content="Select task commits" Command="{Binding FindTaskCommand}"/>
+   <TextBlock Grid.Column="3" Margin="10,0,0,0" VerticalAlignment="Center" Text="Review the selected commits and their dependencies." TextWrapping="Wrap"/>
+  </Grid>
   <DockPanel Margin="0,14,0,5"><StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
    <Button Content="Include selected" Command="{Binding IncludeCommand}" CommandParameter="{Binding SelectedItems, ElementName=CommitList}"/>
    <Button Content="Exclude selected" Command="{Binding ExcludeCommand}" CommandParameter="{Binding SelectedItems, ElementName=CommitList}"/>
+   <Button Content="Policies..." Command="{Binding OpenPolicyCommand}"/>
    <Button Content="Update plan" Command="{Binding UpdatePlanCommand}"/>
   </StackPanel><TextBlock Text="{Binding SelectionSummary}" VerticalAlignment="Center"/></DockPanel>
   <TextBlock Text="Use Ctrl/Shift to select rows. Checkboxes decide which commits to transfer; Update plan applies the selection." Margin="0,0,0,6" TextWrapping="Wrap"/>
   <ListBox x:Name="CommitList" ItemsSource="{Binding Commits}" SelectionMode="Extended" SelectionChanged="CommitList_SelectionChanged" IsEnabled="{Binding CanEditInputs}" MaxHeight="240" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-   <ListBox.ItemTemplate><DataTemplate><Grid ToolTip="{Binding Commit.Comment}"><Grid.ColumnDefinitions><ColumnDefinition Width="28"/><ColumnDefinition Width="85"/><ColumnDefinition Width="150"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+   <ListBox.ItemTemplate><DataTemplate><Grid ToolTip="{Binding Commit.Comment}"><Grid.ColumnDefinitions><ColumnDefinition Width="28"/><ColumnDefinition Width="85"/><ColumnDefinition Width="150"/><ColumnDefinition Width="*"/><ColumnDefinition Width="135"/></Grid.ColumnDefinitions>
     <CheckBox IsChecked="{Binding IsSelected}" VerticalAlignment="Center"/>
     <TextBlock Grid.Column="1" Text="{Binding Commit.ShortSha, Mode=OneWay}"/>
     <TextBlock Grid.Column="2" Text="{Binding Commit.Author}" Margin="0,0,10,0"/>
     <StackPanel Grid.Column="3" Orientation="Horizontal"><TextBlock Text="{Binding Commit.Subject, Mode=OneWay}"/><TextBlock Text=" · already applied" Foreground="DarkOrange" Visibility="{Binding Commit.AlreadyApplied, Converter={StaticResource Visibility}}"/></StackPanel>
+    <StackPanel Grid.Column="4" Orientation="Horizontal" Visibility="{Binding Commit.IsMerge, Converter={StaticResource Visibility}}"><TextBlock Text="Mainline" VerticalAlignment="Center"/><TextBox Width="34" Margin="5,0,0,0" Text="{Binding Mainline, UpdateSourceTrigger=PropertyChanged}" ToolTip="Enter 1 or 2 after checking which parent contains the main branch."/></StackPanel>
    </Grid></DataTemplate></ListBox.ItemTemplate>
   </ListBox>
   <ProgressBar Height="4" Margin="0,10,0,0" IsIndeterminate="True" Visibility="{Binding IsBusy, Converter={StaticResource Visibility}}"/>
   <Border Margin="0,12,0,8" Padding="10" BorderThickness="1" BorderBrush="{DynamicResource {x:Static vsshell:VsBrushes.ToolWindowBorderKey}}"><TextBlock Text="{Binding Status, Mode=OneWay}" TextWrapping="Wrap"/></Border>
   <TextBlock Text="Transfer plan" FontWeight="SemiBold"/>
-  <ItemsControl ItemsSource="{Binding Steps}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Margin="0,3" TextWrapping="Wrap"><Run Text="{Binding Commit.ShortSha, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Status, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" · "/><Run Text="{Binding Commit.Subject, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Details, Mode=OneWay}"/></TextBlock></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+  <ItemsControl ItemsSource="{Binding Steps}"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Margin="0,3" TextWrapping="Wrap"><Run Text="{Binding Target, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Commit.ShortSha, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Status, Mode=OneWay}" FontWeight="SemiBold"/><Run Text=" · "/><Run Text="{Binding Commit.Subject, Mode=OneWay}"/><Run Text=" · "/><Run Text="{Binding Details, Mode=OneWay}"/></TextBlock></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+  <TextBlock Text="{Binding PolicyDetails, Mode=OneWay}" TextWrapping="Wrap" Margin="0,6"/>
   <ItemsControl ItemsSource="{Binding Warnings}" Margin="0,6"><ItemsControl.ItemTemplate><DataTemplate><TextBlock Text="{Binding}" Foreground="DarkOrange" TextWrapping="Wrap" Margin="0,3"/></DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
   <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,8">
    <Button Content="Apply selected commits" Command="{Binding ApplyCommand}"/>

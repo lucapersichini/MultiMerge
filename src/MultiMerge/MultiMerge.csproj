@@ -208,6 +208,10 @@
       <DependentUpon>TaskMergeView.xaml</DependentUpon>
     </Compile>
     <Compile Include="GitMerge\GitTransferEngine.cs" />
+    <Compile Include="GitMerge\GitAdvanced.cs" />
+    <Compile Include="GitMerge\GitSessionStore.cs" />
+    <Compile Include="GitMerge\GitBatchTransfer.cs" />
+    <Compile Include="GitMerge\GitPolicyWindow.cs" />
     <Compile Include="GitMerge\GitMergeViewModel.cs" />
     <Compile Include="GitMerge\GitMergeView.xaml.cs"><DependentUpon>GitMergeView.xaml</DependentUpon></Compile>
     <Compile Include="TaskMerge\TaskMergeViewModel.cs" />

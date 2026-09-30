@@ -78,7 +78,7 @@ Personal rules live in `%APPDATA%\MultiMerge\merge-policy.personal.json`. The ex
 
 Legacy single-changeset preferences are copied from `%APPDATA%\Visual Studio Auto Merge\automerge.conf` to `%APPDATA%\Visual Studio MultiMerge\multimerge.conf` on first use.
 
-## Limits
+## TFVC limits
 
 - One target branch per task merge.
 - A work item link does not prove that the task contains all of its code dependencies.
@@ -86,22 +86,23 @@ Legacy single-changeset preferences are copied from `%APPDATA%\Visual Studio Aut
 - Task merges stop on unsupported operations such as renames, branching, rollback or undelete.
 - Resuming a merge chain after closing Visual Studio is not currently supported.
 
-## Git preview
+## Git transfer
 
-The **Merge from Task** window automatically shows the Git or TFVC workflow for an unambiguous solution context. Its header identifies the repository or workspace. Multiple repositories, conflicting mappings or unavailable context show explicit choices. Context changes are blocked during an active transfer. Use **Detect context** to retry detection. Opening from Team Explorer explicitly selects TFVC. In Git:
+The Merge from Task window automatically shows Git or TFVC when the current solution has one clear context. When it is ambiguous, choose the repository or connected TFVC project explicitly. The context is locked during active transfers.
 
-1. The detected Git repository is loaded automatically. For an explicit Git choice, enter a local repository folder and press **Load repository**.
-2. Choose local source and target branches, then **Load commits** (latest 200 commits not reachable from the target).
-3. Select commits with the checkboxes or Ctrl/Shift plus **Include selected**. Press **Update plan** for an isolated preview.
-4. Review the plan and **Apply selected commits**. The target branch is checked out and each selected commit is cherry-picked locally, preserving its message and original SHA. Nothing is pushed automatically.
-5. For text conflicts, review current/incoming content, edit the result, **Save and stage**, then **Continue**. Binary, non-UTF-8 and structural conflicts must be resolved and staged in an external Git tool.
-6. **Abort current cherry-pick** cancels the interrupted pick; previously completed commits stay on the target. Build and test before pushing.
+1. Choose the local source and first target branch. Additional targets can be entered separated by semicolons; they are processed in order.
+2. Load the commits. Enter a task ID and use Select task commits to propose commits whose messages reference the exact ID or which Azure Boards links to that work item. Review the checkboxes and dependencies; selection never starts a transfer.
+3. For a merge commit, enter the parent number to use as its mainline. Use Policies to edit and validate the target team policy and personal policy. Update plan previews each target in an isolated clone.
+4. Review every plan and Apply selected commits. A conflict pauses the batch before later targets are touched. Nothing is pushed automatically.
+5. For text conflicts, edit the result, Save and stage, then Continue. Binary and structural conflicts require an external Git tool. Abort cancels the current pick, while already completed targets and commits remain.
 
-This first Git version requires Git for Windows and configured Git author identity. It refuses a dirty working tree and checks that branches have not moved since preview. Git policies, automatic work-item discovery, merge-commit mainline selection and recovery after restarting Visual Studio are not implemented yet. Git cannot prove that selected commits include all code dependencies.
+Git policies use the same JSON schema as TFVC. The team file is .automerge-policy.json committed on each target branch. The personal file is under %APPDATA%\MultiMerge\git-policy.personal.json and overrides matching team rules. Merge applies changes; Discard retains target content while recording provenance; Skip omits changes. Protected-line rules retain matching target lines, with unsafe results blocked at preview. Saving a team policy from the editor creates a local change that you must commit before Update plan.
+
+The extension saves an active transfer journal in the repository's Git directory. Reopen the repository after restarting Visual Studio to recover a paused transfer. Recovery refuses changed branches, policies or unexpected cherry-picks. Git for Windows and a configured author identity are required. The working tree must be clean before application. Commit discovery considers the latest 200 source commits that are missing from at least one selected target; Azure Boards lookup recognizes Git commit artifacts but does not infer code dependencies. A multi-target run is sequential and not atomic: earlier completed targets remain if a later target stops. Merge commits require an explicit mainline choice. Build and test each target before pushing.
 
 ## Build and tests
 
-The Git preview was built and all 351 automated tests passed using Visual Studio 2026 MSBuild and VSTest, including 12 tests with real Git repositories and 19 context-resolution cases. A separate WPF integration run passed 14 checks against synthetic fixtures from the private Git laboratory, including selected-commit application, compiling the result, and editing/staging/continuing a conflict. A further 11 WPF/context checks validated the single-workflow host, transfer locking, ambiguous repositories and linked Git worktrees. These runs hosted the compiled views and view models outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
+The Git workflow was built with Visual Studio 2026 MSBuild and all 366 automated tests passed with VSTest, including real Git repositories for policy decisions, task lookup, multi-target transfers, merge parents, and recovery. A WPF integration run passed 16 checks against synthetic fixtures from the private Git laboratory: task selection, two target branches, application, compilation of the result, conflict resolution, and restart recovery. A separate 11-check WPF/context run validated the single-workflow host, transfer locking, ambiguous repositories and linked Git worktrees. These runs host the compiled views and view models outside Visual Studio; validation inside the installed IDE is still pending. The maintainer has also exercised the TFVC workflow in their own environment. Automated tests do not replace building and testing each merged application.
 
 Use **MSBuild from Visual Studio**, with the Visual Studio extension development tools and .NET Framework targeting pack installed:
 

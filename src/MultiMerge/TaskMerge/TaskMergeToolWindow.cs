@@ -123,7 +123,7 @@ namespace MultiMerge
             if (_sharedViewModel == null)
                 _sharedViewModel = new TaskMergeViewModel(serviceProvider, new VsLogger(serviceProvider));
 
-            if (_sharedGitViewModel == null) _sharedGitViewModel = new GitMergeViewModel();
+            if (_sharedGitViewModel == null) _sharedGitViewModel = new GitMergeViewModel(serviceProvider);
             _services = serviceProvider;
             _tfvcView = new TaskMergeView { DataContext = _sharedViewModel };
             _contextView = new MergeContextView(new GitMergeView { DataContext = _sharedGitViewModel }, _tfvcView);

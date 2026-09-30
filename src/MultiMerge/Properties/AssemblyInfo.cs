@@ -30,8 +30,8 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Revision and Build Numbers
 // by using the '*' as shown below:
 
-[assembly: AssemblyVersion("1.1.0.0")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.2.0.0")]
+[assembly: AssemblyFileVersion("1.2.0.0")]
 
 [assembly: InternalsVisibleTo("MultiMerge_IntegrationTests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e7ae2c7f4bfb47fbe6f0d52701c52067de068a5f5a209befa519efe840955ce682c06506a01bb81fa8fbf12ec6cea9d3eee417b763cc575661ee9d68a52fbbf7d3a67e57778fc5bdfb4b9e40c0258821402fb12ba1d9bacdc6fd9893baaac5d07819eb69f62658378293d52ce6959b3311620dca3c9be3642974ab29576022ce")]
 [assembly: InternalsVisibleTo("MultiMerge_UnitTests, PublicKey=0024000004800000940000000602000000240000525341310004000001000100e7ae2c7f4bfb47fbe6f0d52701c52067de068a5f5a209befa519efe840955ce682c06506a01bb81fa8fbf12ec6cea9d3eee417b763cc575661ee9d68a52fbbf7d3a67e57778fc5bdfb4b9e40c0258821402fb12ba1d9bacdc6fd9893baaac5d07819eb69f62658378293d52ce6959b3311620dca3c9be3642974ab29576022ce")]

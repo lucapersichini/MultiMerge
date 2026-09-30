@@ -1,5 +1,13 @@
 # MultiMerge release notes
 
+## 1.2.0 (Git workflow expansion, 2026-09-30)
+
+- Add Git team and personal policies using the existing path and protected-line JSON rules, with a validating WPF editor and policy fingerprint checks between preview and apply.
+- Select task commits from exact IDs in commit messages and linked Azure Boards Git commit artifacts; the user reviews the result before applying.
+- Preview and apply selected commits sequentially to multiple local target branches, pausing before later targets when one conflicts.
+- Support merge commits after an explicit mainline parent choice; preview shows the resulting changes.
+- Persist transfer and batch state in the Git directory and verify the repository when recovering after a Visual Studio restart. Reject unexpected branch, policy or cherry-pick changes.
+- No automatic push or dependency guarantee; multi-target application retains earlier completed branches if a later branch stops.
 ## 1.1.0 (Git preview)
 
 - Automatically show a single Git or TFVC workflow from the solution/provider context; show explicit choices for unavailable, multiple or conflicting contexts. Keep the context locked during transfers and discard stale detection results.

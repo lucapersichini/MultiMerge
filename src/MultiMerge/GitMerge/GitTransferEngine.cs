@@ -70,6 +70,7 @@ namespace MultiMerge
         public string Subject { get { return Comment.Split('\n')[0]; } }
         public bool AlreadyApplied { get; internal set; }
         public bool IsMerge { get; internal set; }
+        public int ParentCount { get; internal set; }
         public IReadOnlyList<string> Paths { get; internal set; }
     }
 
@@ -85,6 +86,9 @@ namespace MultiMerge
         public GitCommitInfo Commit { get; internal set; }
         public string Status { get; internal set; }
         public string Details { get; internal set; }
+        public int Mainline { get; internal set; }
+        public IReadOnlyList<string> Paths { get; internal set; }
+        public string Target { get; internal set; }
     }
 
     public sealed class GitTransferPlan
@@ -97,6 +101,7 @@ namespace MultiMerge
         public IReadOnlyList<GitTransferStep> Steps { get; internal set; }
         public IReadOnlyList<string> Warnings { get; internal set; }
         public bool IsValid { get; internal set; }
+        public GitPolicySnapshot Policy { get; internal set; }
     }
 
     public sealed class GitTransferSession
@@ -122,7 +127,7 @@ namespace MultiMerge
         internal bool CrLf;
     }
 
-    public sealed class GitTransferEngine
+    public sealed partial class GitTransferEngine
     {
         private static string Output(string root, params string[] args) { return GitCli.Run(root, false, args).Output.Trim(); }
         private static string Resolve(string root, string reference)
@@ -165,31 +170,72 @@ namespace MultiMerge
                 .Where(line => line.StartsWith("- ", StringComparison.Ordinal)).Select(line => line.Substring(2).Trim()), StringComparer.Ordinal);
             var commits = new List<GitCommitInfo>();
             foreach (var id in ids)
-            {
-                var metadata = GitCli.Run(root, false, "show", "--no-patch", "--format=%an%n%aI%n%B", id).Output.Replace("\r\n", "\n").Split(new[] { '\n' }, 3);
-                var parents = Output(root, "rev-list", "--parents", "-n", "1", id).Split(' ');
-                commits.Add(new GitCommitInfo
-                {
-                    Sha = id, Author = metadata[0], Date = metadata[1], Comment = metadata[2].Trim(),
-                    AlreadyApplied = equivalents.Contains(id), IsMerge = parents.Length > 2,
-                    Paths = Paths(GitCli.Run(root, false, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", id).Output).ToList().AsReadOnly()
-                });
-            }
+                commits.Add(ReadCommit(root, id, equivalents.Contains(id)));
             return commits.AsReadOnly();
         }
 
+        private static GitCommitInfo ReadCommit(string root, string id, bool alreadyApplied)
+        {
+            var metadata = GitCli.Run(root, false, "show", "--no-patch", "--format=%an%n%aI%n%B", id)
+                .Output.Replace("\r\n", "\n").Split(new[] { '\n' }, 3);
+            var parents = Output(root, "rev-list", "--parents", "-n", "1", id).Split(' ');
+            return new GitCommitInfo {
+                Sha = id, Author = metadata[0], Date = metadata[1], Comment = metadata[2].Trim(),
+                AlreadyApplied = alreadyApplied, IsMerge = parents.Length > 2, ParentCount = parents.Length - 1,
+                Paths = Paths(GitCli.Run(root, false, "diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "-z", id)
+                    .Output).ToList().AsReadOnly()
+            };
+        }
+
+        private static bool IsAncestor(string root, string ancestor, string branch)
+        {
+            return GitCli.Run(root, true, "merge-base", "--is-ancestor", ancestor, "refs/heads/" + branch).Code == 0;
+        }
+
+        public IReadOnlyList<GitCommitInfo> LoadCommitCandidates(string path, string source, IEnumerable<string> targets)
+        {
+            var root = Inspect(path).Root;
+            var branches = targets.Where(t => !string.IsNullOrWhiteSpace(t)).Distinct(StringComparer.Ordinal).ToList();
+            if (branches.Count == 0) throw new InvalidOperationException("Choose a target branch.");
+            var commits = new Dictionary<string, GitCommitInfo>(StringComparer.Ordinal);
+            foreach (var target in branches)
+                foreach (var commit in LoadCommits(root, source, target))
+                    if (!commits.ContainsKey(commit.Sha)) commits.Add(commit.Sha, commit);
+            var first = branches[0];
+            foreach (var commit in commits.Values)
+                if (IsAncestor(root, commit.Sha, first)) commit.AlreadyApplied = true;
+            var order = Lines(Output(root, "rev-list", "--reverse", "--topo-order", "--max-count=200", "refs/heads/" + source));
+            return order.Where(commits.ContainsKey).Select(id => commits[id]).ToList().AsReadOnly();
+        }
+
         public GitTransferPlan Preview(string path, string source, string target, IEnumerable<string> selectedIds)
+        {
+            return Preview(path, source, target, selectedIds, null);
+        }
+
+        public GitTransferPlan Preview(string path, string source, string target, IEnumerable<string> selectedIds,
+            IReadOnlyDictionary<string, int> mainlines)
         {
             var root = Inspect(path).Root;
             var all = LoadCommits(root, source, target);
             var selected = new HashSet<string>(selectedIds, StringComparer.Ordinal);
             if (selected.Count == 0) throw new InvalidOperationException("Select at least one commit.");
-            if (selected.Any(id => all.All(c => c.Sha != id))) throw new InvalidOperationException("The selected commits are stale. Load the branches again.");
-            var chosen = all.Where(c => selected.Contains(c.Sha)).ToList();
+            var available = all.ToList();
+            var sourceOrder = Lines(Output(root, "rev-list", "--reverse", "--topo-order", "--max-count=200", "refs/heads/" + source)).ToList();
+            foreach (var id in selected.Where(id => available.All(c => c.Sha != id)))
+            {
+                if (!sourceOrder.Contains(id) || !IsAncestor(root, id, target))
+                    throw new InvalidOperationException("The selected commits are stale or outside the latest 200. Load the branches again.");
+                available.Add(ReadCommit(root, id, true));
+            }
+            var chosen = available.Where(c => selected.Contains(c.Sha)).OrderBy(c => sourceOrder.IndexOf(c.Sha)).ToList();
             var warnings = new List<string>();
             foreach (var commit in chosen)
             {
-                if (commit.IsMerge) warnings.Add(commit.ShortSha + ": merge commits need a mainline choice and are unsupported in this first Git version.");
+                if (commit.IsMerge && (mainlines == null || !mainlines.ContainsKey(commit.Sha) ||
+                    mainlines[commit.Sha] < 1 || mainlines[commit.Sha] > commit.ParentCount))
+                    warnings.Add(commit.ShortSha + ": choose a mainline parent from 1 to " + commit.ParentCount + ".");
+                if (commit.AlreadyApplied) continue;
                 foreach (var earlier in all.TakeWhile(c => c.Sha != commit.Sha).Where(c => !selected.Contains(c.Sha) && !c.AlreadyApplied))
                     if (earlier.Paths.Intersect(commit.Paths, StringComparer.Ordinal).Any())
                         warnings.Add(commit.ShortSha + " changes files also changed by excluded " + earlier.ShortSha + "; it may depend on those changes.");
@@ -198,11 +244,16 @@ namespace MultiMerge
             {
                 Root = root, Source = source, Target = target,
                 SourceHead = Resolve(root, "refs/heads/" + source), TargetHead = Resolve(root, "refs/heads/" + target),
-                Steps = chosen.Select(c => new GitTransferStep { Commit = c, Status = "Waiting", Details = "" }).ToList().AsReadOnly(),
-                IsValid = !chosen.Any(c => c.IsMerge)
+                Steps = chosen.Select(c => new GitTransferStep { Commit = c, Status = "Waiting", Details = "",
+                    Mainline = mainlines != null && mainlines.ContainsKey(c.Sha) ? mainlines[c.Sha] : 0 }).ToList().AsReadOnly(),
+                IsValid = !chosen.Any(c => c.IsMerge && (mainlines == null || !mainlines.ContainsKey(c.Sha) ||
+                    mainlines[c.Sha] < 1 || mainlines[c.Sha] > c.ParentCount))
             };
             if (plan.IsValid)
             {
+                plan.Policy = LoadPolicy(root, target);
+                warnings.Add(plan.Policy.Description);
+                foreach (var step in plan.Steps) step.Paths = ChangedPaths(root, step);
                 var scratchRoot = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "MultiMerge-Git-Preview");
                 var scratch = System.IO.Path.Combine(scratchRoot, Guid.NewGuid().ToString("N"));
                 Directory.CreateDirectory(scratchRoot);
@@ -217,8 +268,17 @@ namespace MultiMerge
                     {
                         if (step.Commit.AlreadyApplied) { step.Status = "Already applied"; continue; }
                         if (blocked) { step.Status = "After conflict"; step.Details = "Will be checked after resolving the preceding conflict."; continue; }
-                        var pick = GitCli.Run(scratch, true, "cherry-pick", "-x", step.Commit.Sha);
-                        if (pick.Code == 0) { step.Status = "Ready"; continue; }
+                        GitResult pick;
+                        try { pick = plan.Policy.Effective.PathRules.Any() || plan.Policy.Effective.LineRules.Any()
+                            ? PickWithPolicy(scratch, step, plan.Policy)
+                            : GitCli.Run(scratch, true, PickArguments(step, false)); }
+                        catch (InvalidOperationException ex) { step.Status = "Failed"; step.Details = ex.Message; plan.IsValid = false; blocked = true; continue; }
+                        if (pick.Code == 0) {
+                            if (step.Status != "Skipped by policy") step.Status = "Ready";
+                            if (!string.IsNullOrWhiteSpace(step.Details))
+                                warnings.Add(step.Commit.ShortSha + " policy: " + step.Details);
+                            continue;
+                        }
                         var conflicts = GetConflicts(scratch);
                         if (conflicts.Count != 0)
                         {
@@ -288,10 +348,15 @@ namespace MultiMerge
             RequireClean(plan.Root);
             if (Resolve(plan.Root, "refs/heads/" + plan.Source) != plan.SourceHead || Resolve(plan.Root, "refs/heads/" + plan.Target) != plan.TargetHead)
                 throw new InvalidOperationException("A branch changed since preview. Update the plan again.");
+            if (plan.Policy == null || LoadPolicy(plan.Root, plan.Target).Fingerprint != plan.Policy.Fingerprint)
+                throw new InvalidOperationException("Git merge policies changed since preview. Update the plan.");
             GitCli.Run(plan.Root, false, "var", "GIT_AUTHOR_IDENT");
             GitCli.Run(plan.Root, false, "var", "GIT_COMMITTER_IDENT");
+            if (HasRecoverableSession(plan.Root))
+                throw new InvalidOperationException("A saved Git transfer already exists. Recover or inspect it before starting a new transfer.");
             GitCli.Run(plan.Root, false, "switch", "--", plan.Target);
             var session = new GitTransferSession { Plan = plan, ExpectedHead = plan.TargetHead, Status = "Running", Conflicts = new List<string>().AsReadOnly() };
+            SaveSession(session);
             Advance(session);
             return session;
         }
@@ -307,7 +372,8 @@ namespace MultiMerge
         }
         private static void CheckPendingScope(GitTransferSession session)
         {
-            var allowed = new HashSet<string>(session.Plan.Steps[session.NextIndex].Commit.Paths, StringComparer.Ordinal);
+            var allowed = new HashSet<string>(session.Plan.Steps[session.NextIndex].Paths ??
+                session.Plan.Steps[session.NextIndex].Commit.Paths, StringComparer.Ordinal);
             var changed = Paths(GitCli.Run(session.Plan.Root, false, "diff", "--name-only", "HEAD", "-z", "--").Output);
             if (changed.Any(path => !allowed.Contains(path))) throw new InvalidOperationException("Unrelated files changed during conflict resolution. Keep them out of this transfer before continuing or aborting.");
         }
@@ -320,6 +386,7 @@ namespace MultiMerge
                 session.Status = "Paused"; session.Message = "Transfer paused: " + ex.Message;
                 try { session.Conflicts = GetConflicts(session.Plan.Root); }
                 catch { session.Conflicts = new List<string>().AsReadOnly(); }
+                SaveSession(session);
             }
         }
 
@@ -330,24 +397,32 @@ namespace MultiMerge
             while (session.NextIndex < session.Plan.Steps.Count)
             {
                 var step = session.Plan.Steps[session.NextIndex];
-                if (step.Status == "Already applied") { session.NextIndex++; continue; }
+                if (step.Status == "Already applied" || step.Status == "Skipped by policy") { session.NextIndex++; SaveSession(session); continue; }
                 RequireClean(root);
-                var pick = GitCli.Run(root, true, "cherry-pick", "-x", step.Commit.Sha);
+                GitResult pick;
+                try { pick = session.Plan.Policy.Effective.PathRules.Any() || session.Plan.Policy.Effective.LineRules.Any()
+                    ? PickWithPolicy(root, step, session.Plan.Policy)
+                    : GitCli.Run(root, true, PickArguments(step, false)); }
+                catch (InvalidOperationException ex) { session.Status = "Paused"; session.Message = ex.Message;
+                    session.Conflicts = GetConflicts(root); step.Status = "Failed"; SaveSession(session); return; }
                 if (pick.Code == 0)
                 {
-                    step.Status = "Applied"; session.ExpectedHead = Resolve(root, "HEAD"); session.NextIndex++; continue;
+                    if (step.Status != "Skipped by policy") step.Status = "Applied";
+                    session.ExpectedHead = Resolve(root, "HEAD"); session.NextIndex++; SaveSession(session); continue;
                 }
                 session.Conflicts = GetConflicts(root);
                 if (session.Conflicts.Count == 0 && HasPick(root) && IsEmptyPick(root))
                 {
-                    GitCli.Run(root, false, "cherry-pick", "--skip"); step.Status = "Already applied"; session.NextIndex++; continue;
+                    GitCli.Run(root, false, "cherry-pick", "--skip"); step.Status = "Already applied"; session.NextIndex++; SaveSession(session); continue;
                 }
                 session.Status = "Paused"; session.Message = pick.Error.Trim() + "\n" + pick.Output.Trim();
                 step.Status = session.Conflicts.Count == 0 ? "Failed" : "Conflict";
+                SaveSession(session);
                 return;
             }
             session.Status = "Completed"; session.Message = "Transfer completed. Build and test the target before pushing.";
             session.Conflicts = new List<string>().AsReadOnly();
+            SaveSession(session);
         }
 
         public void Continue(GitTransferSession session)
@@ -355,6 +430,7 @@ namespace MultiMerge
             CheckSession(session); CheckPendingScope(session);
             var root = session.Plan.Root;
             if (GetConflicts(root).Count != 0) throw new InvalidOperationException("Resolve and stage all conflicting files first.");
+            CheckProtectedStagedFiles(session);
             if (HasPick(root))
             {
                 if (Output(root, "rev-parse", "CHERRY_PICK_HEAD") != session.Plan.Steps[session.NextIndex].Commit.Sha)
@@ -363,6 +439,7 @@ namespace MultiMerge
                     : GitCli.Run(root, false, "-c", "core.editor=true", "cherry-pick", "--continue");
                 session.Plan.Steps[session.NextIndex].Status = IsEmptyPick(root) && Resolve(root, "HEAD") == session.ExpectedHead ? "Already applied" : "Applied";
                 session.ExpectedHead = Resolve(root, "HEAD"); session.NextIndex++;
+                SaveSession(session);
             }
             Advance(session);
         }
@@ -379,6 +456,7 @@ namespace MultiMerge
             }
             session.Status = "Aborted"; session.Conflicts = new List<string>().AsReadOnly();
             session.Message = "Current cherry-pick aborted. Earlier completed commits remain on the target branch.";
+            SaveSession(session);
         }
         private static string LocalPath(string root, string relative)
         {
@@ -416,11 +494,13 @@ namespace MultiMerge
             if (!content.CanEdit || !GetConflicts(session.Plan.Root).Contains(content.Path)) throw new InvalidOperationException("This conflict cannot be edited here.");
             if (result.IndexOf('\0') >= 0 || Regex.IsMatch(result, @"(?m)^(<<<<<<< |=======\r?$|>>>>>>> )"))
                 throw new InvalidOperationException("Remove all conflict markers before saving and staging.");
+            CheckProtectedResult(session, content.Path, result);
             var text = result.Replace("\r\n", "\n");
             if (content.CrLf) text = text.Replace("\n", "\r\n");
             File.WriteAllText(LocalPath(session.Plan.Root, content.Path), text, new UTF8Encoding(content.Bom));
             GitCli.Run(session.Plan.Root, false, "add", "--", content.Path);
             session.Conflicts = GetConflicts(session.Plan.Root);
+            SaveSession(session);
         }
     }
 }
