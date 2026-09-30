@@ -111,8 +111,8 @@ The Git workflow was built with Visual Studio 2026 MSBuild and all 366 automated
 Use **MSBuild from Visual Studio**, with the Visual Studio extension development tools and .NET Framework targeting pack installed:
 
 ```powershell
-MSBuild.exe src\MultiMerge.sln /restore /t:Build /p:Configuration=Debug /p:VisualStudioVersion=18.0
-vstest.console.exe src\MultiMerge.Tests\bin\Debug\net48\MultiMerge.Tests.dll /TestAdapterPath:src\MultiMerge.Tests\bin\Debug\net48 /Framework:".NETFramework,Version=v4.8"
+MSBuild.exe src\MultiMerge.sln /restore /t:Build /p:Configuration=Release /p:VisualStudioVersion=18.0
+vstest.console.exe src\MultiMerge.Tests\bin\Release\net48\MultiMerge.Tests.dll /TestAdapterPath:src\MultiMerge.Tests\bin\Release\net48 /Framework:".NETFramework,Version=v4.8"
 ```
 
 The VSIX is generated at `src\MultiMerge\bin\Debug\MultiMerge.vsix`. Use `/p:Configuration=Release` to create the distribution package at `src\MultiMerge\bin\Release\MultiMerge.vsix`. Version-specific manifests are retained for older Visual Studio versions; these have not all been validated for the new task workflow.
