@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json.schemastore.org/vsix-publish",
+  "categories": ["coding"],
+  "identity": {
+    "internalName": "MultiMerge"
+  },
+  "overview": "MARKETPLACE.md",
+  "priceCategory": "free",
+  "publisher": "lucapersichini",
+  "private": false,
+  "qna": true,
+  "repo": "https://github.com/lucapersichini/MultiMerge"
+}
