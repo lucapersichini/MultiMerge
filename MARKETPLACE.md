@@ -14,7 +14,7 @@
 
 Open **Team Explorer → MultiMerge → Merge From Task**, enter a work item and target branch, then review the linked changesets. Include or exclude several rows at once, update the plan, resolve conflicts and check in each part. Comments are prefilled from the task and included changesets. The original single-changeset merge workflow remains available.
 
-![Redacted TFVC task merge plan](https://raw.githubusercontent.com/lucapersichini/MultiMerge/master/screenshots/multimerge-merge-plan.png)
+![Redacted TFVC task merge plan](https://raw.githubusercontent.com/lucapersichini/MultiMerge/feature/git-preview/screenshots/multimerge-merge-plan.png)
 
 ## Git workflow
 
@@ -24,6 +24,6 @@ Git transfers require Git for Windows, a configured author identity and a clean 
 
 ## Policies and support
 
-For either mode, the team policy lives in `.automerge-policy.json` at the target branch root. Personal rules override matching team rules. See the [README](https://github.com/lucapersichini/MultiMerge) for the policy schema, workflow details and current limitations, or the [release notes](https://github.com/lucapersichini/MultiMerge/blob/master/RELEASE_NOTES.md) for changes in this version.
+For either mode, the team policy lives in `.automerge-policy.json` at the target branch root. Personal rules override matching team rules. See the [README for the 1.2.0 source branch](https://github.com/lucapersichini/MultiMerge/tree/feature/git-preview) for the policy schema, workflow details and current limitations, or the [release notes](https://github.com/lucapersichini/MultiMerge/blob/feature/git-preview/RELEASE_NOTES.md) for changes in this version.
 
 MultiMerge is maintained by Luca Persichini and builds on [AutoMerge by Kulikov Denis (CDuke)](https://github.com/CDuke/AutoMerge). It retains the original Apache 2.0 license and notices.

@@ -6,7 +6,7 @@
         <DisplayName>MultiMerge for Visual Studio 2026</DisplayName>
         <Description xml:space="preserve">Task-based transfers for Git and TFVC: select changes, preview branches, apply policies, resolve conflicts, and deliver to multiple Git targets.</Description>
         <License>LICENSE.txt</License>
-        <ReleaseNotes>https://github.com/lucapersichini/MultiMerge/blob/master/RELEASE_NOTES.md</ReleaseNotes>
+        <ReleaseNotes>https://github.com/lucapersichini/MultiMerge/blob/feature/git-preview/RELEASE_NOTES.md</ReleaseNotes>
         <Icon>Resources/merge.png</Icon>
         <Tags>git, tfvc, tfs, azure devops, azure boards, work item, changeset, cherry-pick, backport, branch merge, conflict resolution, merge policy</Tags>
     </Metadata>
