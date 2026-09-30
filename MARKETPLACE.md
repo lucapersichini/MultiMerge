@@ -14,7 +14,7 @@
 
 Open **Team Explorer → MultiMerge → Merge From Task**, enter a work item and target branch, then review the linked changesets. Include or exclude several rows at once, update the plan, resolve conflicts and check in each part. Comments are prefilled from the task and included changesets. The original single-changeset merge workflow remains available.
 
-![Redacted TFVC task merge plan](https://raw.githubusercontent.com/lucapersichini/MultiMerge/feature/git-preview/screenshots/multimerge-merge-plan.png)
+![Redacted TFVC task merge plan](https://raw.githubusercontent.com/lucapersichini/MultiMerge/master/screenshots/multimerge-merge-plan.png)
 
 ## Git workflow
 
